@@ -235,6 +235,13 @@ async function fetchAll(){
   const btn=document.getElementById('rbtn');
   btn.disabled=true;
   showOv('Contacting data sources…');
+
+  // Watchdog: never let the overlay hang indefinitely (network blockers, stalled fetch, etc.)
+  let __wd = setTimeout(()=>{
+    dbgLog('⚠ Watchdog: overlay dismissed after 30s (a request likely stalled).','er');
+    hideOv();
+    btn.disabled=false;
+  }, 30000);
   renderSbar(); renderTable();
 
   await Promise.allSettled(SOURCES.map(async src=>{
@@ -252,6 +259,7 @@ async function fetchAll(){
     renderSbar(); renderDbg();
   }));
 
+  clearTimeout(__wd);
   hideOv(); btn.disabled=false; renderTable();
   document.getElementById('lrt').textContent=
     'Refreshed '+new Date().toUTCString().replace(/^.*?, /,'').replace(' GMT','z').slice(0,9);
