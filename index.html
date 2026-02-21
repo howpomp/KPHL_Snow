@@ -123,7 +123,7 @@
   <label>Event Start (UTC)</label>
   <input type="date" id="startDate"/>
   <label>6-hr Periods</label>
-  <input type="number" id="numP" value="8" min="2" max="24" style="width:56px"/>
+  <input type="number" id="numP" value="16" min="2" max="24" style="width:56px"/>
   <button class="btn" id="rbtn" onclick="fetchAll()">⟳ Refresh</button>
   <button class="btn btng" onclick="clearManual()">Clear Manual</button>
   <button class="btn btng" onclick="exportCSV()">↓ CSV</button>
@@ -171,7 +171,7 @@
 //  CONFIG
 // ════════════════════════════════════════════════════
 const LAT=39.8729, LON=-75.2437;
-const CM_IN=0.393701, MM_IN=0.0393701;
+const CM_IN=0.393701, MM_IN=0.0393701, M_IN=39.3701;
 
 // Model forecast range limits (hours)
 const RANGES={nws:Infinity,nbm:264,gfs:384,gefs:840,ecmwf:240,gem:240,hrrr:48,nam:60};
@@ -211,7 +211,7 @@ function tickClk(){
 // ════════════════════════════════════════════════════
 async function fetchAll(){
   const dv=document.getElementById('startDate').value;
-  const np=Math.max(2,Math.min(24,parseInt(document.getElementById('numP').value)||8));
+  const np=Math.max(2,Math.min(24,parseInt(document.getElementById('numP').value)||16));
   if(!dv){alert('Select a start date.');return;}
 
   S.start=new Date(dv+'T00:00:00Z');
@@ -257,9 +257,21 @@ async function fetchNWS(startDate,numP){
   const p=gd.properties;
   const rt=p.updateTime?fmtR(new Date(p.updateTime)):'NWS Current';
 
-  const vals=(p.snowfallAmount?.values?.length ? p.snowfallAmount.values
-            : p.snowfall?.values?.length       ? p.snowfall.values : []);
-  dbgLog('NWS snowfallAmount entries: '+vals.length,'ok');
+  // Detect which field and its unit (wmo:m = meters, wmo:mm = millimeters)
+  let snowProp=null, unitFactor=MM_IN;
+  if(p.snowfallAmount?.values?.length){
+    snowProp=p.snowfallAmount;
+    const u=(p.snowfallAmount.uom||'').toLowerCase();
+    unitFactor = u.includes('m') && !u.includes('mm') ? M_IN : MM_IN;
+    dbgLog('NWS using snowfallAmount, uom='+p.snowfallAmount.uom+', factor='+unitFactor,'ok');
+  } else if(p.snowfall?.values?.length){
+    snowProp=p.snowfall;
+    const u=(p.snowfall.uom||'').toLowerCase();
+    unitFactor = u.includes('m') && !u.includes('mm') ? M_IN : MM_IN;
+    dbgLog('NWS using snowfall, uom='+p.snowfall.uom+', factor='+unitFactor,'ok');
+  }
+  const vals=snowProp?.values||[];
+  dbgLog('NWS snowfall entries: '+vals.length+', unit factor: '+unitFactor,'ok');
 
   const hrMap={};
   vals.forEach(({validTime,value})=>{
@@ -268,7 +280,7 @@ async function fetchNWS(startDate,numP){
     const base=new Date(ts), hrs=parseDur(dur);
     for(let h=0;h<hrs;h++) hrMap[uhk(new Date(base.getTime()+h*3600000))]=value;
   });
-  return{runTime:rt,periods:buildP(startDate,numP,hrMap,MM_IN)};
+  return{runTime:rt,periods:buildP(startDate,numP,hrMap,unitFactor)};
 }
 
 // ════════════════════════════════════════════════════
