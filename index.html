@@ -178,13 +178,13 @@ const RANGES={nws:Infinity,nbm:264,gfs:384,gefs:840,ecmwf:240,gem:240,hrrr:48,na
 
 const SOURCES=[
   {id:'nws',  label:'NWS Official', badge:'NWS',  bc:'bnws', group:'Official',  fn:fetchNWS},
-  {id:'nbm',  label:'NBM v4.3',     badge:'NBM',  bc:'bnbm', group:'Official',  fn:(s,n)=>fetchForecast('nbm_conus',s,n,11)},
+  {id:'nbm',  label:'NBM v4.3',     badge:'NBM',  bc:'bnbm', group:'Official',  fn:(s,n)=>fetchGfsEndpoint('nbm_conus', s,n,11)},
   {id:'gfs',  label:'GFS Seamless', badge:'GFS',  bc:'bgfs', group:'Global',    fn:(s,n)=>fetchForecast('gfs_seamless',s,n,16)},
   {id:'gefs', label:'GEFS Mean',    badge:'GEFS', bc:'bgef', group:'Global',    fn:fetchGEFS},
   {id:'ecmwf',label:'ECMWF IFS',   badge:'ECMWF',bc:'becm', group:'Global',    fn:fetchECMWF},
   {id:'gem',  label:'GEM Canadian', badge:'GEM',  bc:'bgem', group:'Global',    fn:fetchGEM},
-  {id:'hrrr', label:'HRRR',         badge:'HRRR', bc:'bhrr', group:'Mesoscale', fn:(s,n)=>fetchForecast('hrrr_conus',s,n,2)},
-  {id:'nam',  label:'NAM Conus',    badge:'NAM',  bc:'bnam', group:'Mesoscale', fn:(s,n)=>fetchForecast('nam_conus',s,n,3)},
+  {id:'hrrr', label:'HRRR',         badge:'HRRR', bc:'bhrr', group:'Mesoscale', fn:(s,n)=>fetchGfsEndpoint('hrrr_conus', s,n,2)},
+  {id:'nam',  label:'NAM Conus',    badge:'NAM',  bc:'bnam', group:'Mesoscale', fn:(s,n)=>fetchGfsEndpoint('nam_conus',  s,n,3)},
 ];
 
 let S={start:null,numP:8,data:{},status:{},fetchedAt:null};
@@ -303,6 +303,34 @@ async function fetchForecast(model,startDate,numP,maxDays){
   if(!times.length)throw new Error('No data: '+model);
   dbgLog(model+' → '+times.length+' hours returned, non-null snow: '+snow.filter(v=>v!=null).length,'ok');
 
+  const hrMap={};
+  times.forEach((t,i)=>{if(snow[i]!=null)hrMap[t.slice(0,13)]=snow[i];});
+  return{runTime:fmtR(new Date(times[0])),periods:buildP(startDate,numP,hrMap,CM_IN)};
+}
+
+
+// ════════════════════════════════════════════════════
+//  OPEN-METEO /v1/gfs  — NBM, HRRR, NAM
+//  These models require the dedicated /v1/gfs endpoint
+//  with models= param (not /v1/forecast which rejects them)
+// ════════════════════════════════════════════════════
+async function fetchGfsEndpoint(model,startDate,numP,maxDays){
+  const s=startDate.toISOString().slice(0,10);
+  const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
+  const url='https://api.open-meteo.com/v1/gfs'
+    +'?latitude='+LAT+'&longitude='+LON
+    +'&hourly=snowfall'
+    +'&models='+model
+    +'&start_date='+s+'&end_date='+e
+    +'&forecast_days='+maxDays
+    +'&timezone=UTC';
+  dbgLog(model+' /v1/gfs → '+url.replace('https://api.open-meteo.com','…'),'url');
+  const j=await getJ(url);
+  if(j.error)throw new Error(j.reason||'Open-Meteo /v1/gfs error: '+model);
+  const times=j.hourly?.time||[];
+  const snow=j.hourly?.snowfall||[];
+  if(!times.length)throw new Error('No data from /v1/gfs: '+model);
+  dbgLog(model+' → '+times.length+' hrs, non-null: '+snow.filter(v=>v!=null).length,'ok');
   const hrMap={};
   times.forEach((t,i)=>{if(snow[i]!=null)hrMap[t.slice(0,13)]=snow[i];});
   return{runTime:fmtR(new Date(times[0])),periods:buildP(startDate,numP,hrMap,CM_IN)};
