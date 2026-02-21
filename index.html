@@ -195,6 +195,26 @@ let S={start:null,numP:8,data:{},status:{},fetchedAt:null};
 let dbgOpen=false;
 const dbgLines=[];
 
+// Global error hooks so "silent" failures show up in Debug.
+window.addEventListener('error', (e)=>{
+  try{
+    const msg = (e?.message||'Script error') + (e?.filename?(' @ '+e.filename.split('/').pop()+':'+e.lineno):'');
+    dbgLog('✗ JS Error: '+msg,'er');
+    renderDbg();
+    hideOv();
+    const b=document.getElementById('rbtn'); if(b) b.disabled=false;
+  }catch(_){}
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  try{
+    dbgLog('✗ Promise rejection: '+(e?.reason?.message||String(e?.reason||'unknown')),'er');
+    renderDbg();
+    hideOv();
+    const b=document.getElementById('rbtn'); if(b) b.disabled=false;
+  }catch(_){}
+});
+
+
 // ════════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════════
@@ -244,8 +264,12 @@ async function fetchAll(){
   }, 30000);
   renderSbar(); renderTable();
 
-  await Promise.allSettled(SOURCES.map(async src=>{
-    setSub('Fetching '+src.label+'…');
+  // Fetch sequentially to avoid browser throttling and make it obvious which source stalls.
+  for (const src of SOURCES){
+    try{
+      dbgLog('→ Start '+src.label,'url');
+      setSub('Fetching '+src.label+'…');
+    }catch(_){}
     try{
       S.data[src.id]=await src.fn(S.start,np);
       S.status[src.id]='ok';
@@ -257,7 +281,8 @@ async function fetchAll(){
       dbgLog('✗ '+src.label+': '+e.message,'er');
     }
     renderSbar(); renderDbg();
-  }));
+  }
+
 
   clearTimeout(__wd);
   hideOv(); btn.disabled=false; renderTable();
