@@ -275,14 +275,38 @@ async function fetchNWS(startDate,numP){
   const vals=snowProp?.values||[];
   dbgLog('NWS uom='+uom+' factor='+unitFactor+' entries='+vals.length,'ok');
 
-  const hrMap={};
+  // snowfallAmount values are INCREMENTAL totals over their duration window
+  // We must sum the values that overlap each 6-hr period proportionally,
+  // not spread one value across every hour (that would multiply by hours)
+  // Strategy: build a list of {startMs, endMs, value} intervals, then
+  // for each 6-hr period sum values whose intervals overlap it.
+  const intervals=[];
   vals.forEach(({validTime,value})=>{
-    if(value==null)return;
+    if(value==null||value===0)return;
     const[ts,dur]=validTime.split('/');
-    const base=new Date(ts), hrs=parseDur(dur);
-    for(let h=0;h<hrs;h++) hrMap[uhk(new Date(base.getTime()+h*3600000))]=value;
+    const startMs=new Date(ts).getTime();
+    const hrs=parseDur(dur);
+    const endMs=startMs+hrs*3600000;
+    intervals.push({startMs,endMs,value,hrs});
   });
-  return{runTime:rt,periods:buildP(startDate,numP,hrMap,unitFactor)};
+
+  const periods=Array.from({length:numP},(_,p)=>{
+    const pStart=startDate.getTime()+p*6*3600000;
+    const pEnd=pStart+6*3600000;
+    let sum=0,any=false;
+    intervals.forEach(({startMs,endMs,value,hrs})=>{
+      // Check overlap
+      const overlapStart=Math.max(pStart,startMs);
+      const overlapEnd=Math.min(pEnd,endMs);
+      if(overlapEnd<=overlapStart)return;
+      // Pro-rate by fraction of the interval that falls in this period
+      const fraction=(overlapEnd-overlapStart)/(endMs-startMs);
+      sum+=value*fraction;
+      any=true;
+    });
+    return any?+((sum*unitFactor).toFixed(2)):null;
+  });
+  return{runTime:rt,periods};
 }
 
 // ════════════════════════════════════════════════════
