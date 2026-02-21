@@ -63,7 +63,6 @@
     .bnbm{background:#00bcd412;color:#80deea;border:1px solid #00bcd428}
     .bgfs{background:#4caf5012;color:#81c784;border:1px solid #4caf5028}
     .bgef{background:#4caf5009;color:#a5d6a7;border:1px solid #4caf5018}
-    .bens{background:#90a4ae12;color:#cfd8dc;border:1px solid #90a4ae28}
     .becm{background:#9c27b012;color:#ce93d8;border:1px solid #9c27b028}
     .bgem{background:#ff572212;color:#ff8a65;border:1px solid #ff572228}
     .bhrr{background:#ff980012;color:#ffb74d;border:1px solid #ff980028}
@@ -175,16 +174,13 @@ const LAT=39.8729, LON=-75.2437;
 const CM_IN=0.393701, MM_IN=0.0393701;
 
 // Model forecast range limits (hours)
-const RANGES={nws:Infinity,nbm:264,gfs:384,gefs:840,gefsrng:840,gfsens:240,ifsens:360,ecmwf:240,gem:240,hrrr:48,nam:60};
+const RANGES={nws:Infinity,nbm:264,gfs:384,gefs:840,ecmwf:240,gem:240,hrrr:48,nam:60};
 
 const SOURCES=[
   {id:'nws',  label:'NWS Official', badge:'NWS',  bc:'bnws', group:'Official',  fn:fetchNWS},
   {id:'nbm',  label:'NBM v4.3',     badge:'NBM',  bc:'bnbm', group:'Official',  fn:(s,n)=>fetchGfsEndpoint('ncep_nbm_conus', s,n,11)},
   {id:'gfs',  label:'GFS Seamless', badge:'GFS',  bc:'bgfs', group:'Global',    fn:(s,n)=>fetchForecast('gfs_seamless',s,n,16)},
   {id:'gefs', label:'GEFS Mean',    badge:'GEFS', bc:'bgef', group:'Global',    fn:fetchGEFS},
-  {id:'gefsrng',label:'GEFS Range',   badge:'ENS',  bc:'bens', group:'Global', editable:false, fn:(s,n)=>fetchEnsembleRange('gfs_seamless',s,n,'GEFS')},
-  {id:'gfsens', label:'GFS Ens (P10–P90)', badge:'ENS', bc:'bens', group:'Global', editable:false, fn:(s,n)=>fetchEnsembleRange('gfs025',s,n,'GFS ENS')},
-  {id:'ifsens', label:'ECMWF ENS (P10–P90)', badge:'ENS', bc:'bens', group:'Global', editable:false, fn:(s,n)=>fetchEnsembleRange('ecmwf_ifs025_ensemble',s,n,'ECMWF ENS')},
   {id:'ecmwf',label:'ECMWF IFS',   badge:'ECMWF',bc:'becm', group:'Global',    fn:fetchECMWF},
   {id:'gem',  label:'GEM Canadian', badge:'GEM',  bc:'bgem', group:'Global',    fn:fetchGEM},
   {id:'hrrr', label:'HRRR',         badge:'HRRR', bc:'bhrr', group:'Mesoscale', fn:(s,n)=>fetchGfsEndpoint('ncep_hrrr_conus', s,n,2)},
@@ -195,26 +191,6 @@ let S={start:null,numP:8,data:{},status:{},fetchedAt:null};
 let dbgOpen=false;
 const dbgLines=[];
 
-// Global error hooks so "silent" failures show up in Debug.
-window.addEventListener('error', (e)=>{
-  try{
-    const msg = (e?.message||'Script error') + (e?.filename?(' @ '+e.filename.split('/').pop()+':'+e.lineno):'');
-    dbgLog('✗ JS Error: '+msg,'er');
-    renderDbg();
-    hideOv();
-    const b=document.getElementById('rbtn'); if(b) b.disabled=false;
-  }catch(_){}
-});
-window.addEventListener('unhandledrejection', (e)=>{
-  try{
-    dbgLog('✗ Promise rejection: '+(e?.reason?.message||String(e?.reason||'unknown')),'er');
-    renderDbg();
-    hideOv();
-    const b=document.getElementById('rbtn'); if(b) b.disabled=false;
-  }catch(_){}
-});
-
-
 // ════════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════════
@@ -224,14 +200,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   const b=document.getElementById('banner');
   b.style.display='block';
   setTimeout(()=>{b.style.display='none'; fetchAll();},350);
-  // If a request hangs or a browser blocks a call, allow user to dismiss overlay to access Debug.
-  document.addEventListener('keydown',(e)=>{
-    if(e.key==='Escape'){ hideOv(); document.getElementById('rbtn').disabled=false; }
-  });
-  const ov=document.getElementById('overlay');
-  ov.title='Press Esc to dismiss overlay if needed';
-  ov.addEventListener('click',()=>{ hideOv(); document.getElementById('rbtn').disabled=false; });
-
 });
 function tickClk(){
   document.getElementById('clk').textContent=
@@ -255,21 +223,10 @@ async function fetchAll(){
   const btn=document.getElementById('rbtn');
   btn.disabled=true;
   showOv('Contacting data sources…');
-
-  // Watchdog: never let the overlay hang indefinitely (network blockers, stalled fetch, etc.)
-  let __wd = setTimeout(()=>{
-    dbgLog('⚠ Watchdog: overlay dismissed after 30s (a request likely stalled).','er');
-    hideOv();
-    btn.disabled=false;
-  }, 30000);
   renderSbar(); renderTable();
 
-  // Fetch sequentially to avoid browser throttling and make it obvious which source stalls.
-  for (const src of SOURCES){
-    try{
-      dbgLog('→ Start '+src.label,'url');
-      setSub('Fetching '+src.label+'…');
-    }catch(_){}
+  await Promise.allSettled(SOURCES.map(async src=>{
+    setSub('Fetching '+src.label+'…');
     try{
       S.data[src.id]=await src.fn(S.start,np);
       S.status[src.id]='ok';
@@ -281,10 +238,8 @@ async function fetchAll(){
       dbgLog('✗ '+src.label+': '+e.message,'er');
     }
     renderSbar(); renderDbg();
-  }
+  }));
 
-
-  clearTimeout(__wd);
   hideOv(); btn.disabled=false; renderTable();
   document.getElementById('lrt').textContent=
     'Refreshed '+new Date().toUTCString().replace(/^.*?, /,'').replace(' GMT','z').slice(0,9);
@@ -356,20 +311,20 @@ async function fetchForecast(model,startDate,numP,maxDays){
 
 // ════════════════════════════════════════════════════
 //  OPEN-METEO /v1/gfs  — NBM, HRRR, NAM
-//  Fixed: removed forecast_days (mutually exclusive with start_date/end_date)
+//  These models require the dedicated /v1/gfs endpoint
+//  with models= param (not /v1/forecast which rejects them)
 // ════════════════════════════════════════════════════
 async function fetchGfsEndpoint(model,startDate,numP,maxDays){
   const s=startDate.toISOString().slice(0,10);
   const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
-
   const url='https://api.open-meteo.com/v1/gfs'
     +'?latitude='+LAT+'&longitude='+LON
     +'&hourly=snowfall'
     +'&models='+model
     +'&start_date='+s+'&end_date='+e
     +'&timezone=UTC';
-
   // ncep_ prefix required: ncep_hrrr_conus, ncep_nam_conus, ncep_nbm_conus
+  // NOTE: forecast_days removed — mutually exclusive with start_date/end_date
   dbgLog(model+' /v1/gfs → '+url.replace('https://api.open-meteo.com','…'),'url');
   const j=await getJ(url);
   if(j.error)throw new Error(j.reason||'Open-Meteo /v1/gfs error: '+model);
@@ -406,70 +361,6 @@ async function fetchGEFS(startDate,numP){
     if(cnt>0)hrMap[t.slice(0,13)]=sum/cnt;
   });
   return{runTime:'GEFS '+mks.length+'-mbr mean',periods:buildP(startDate,numP,hrMap,CM_IN)};
-}
-
-
-function pct(arr,p){
-  if(!arr.length)return null;
-  const a=[...arr].sort((x,y)=>x-y);
-  const idx=(a.length-1)*p;
-  const lo=Math.floor(idx), hi=Math.ceil(idx);
-  if(lo===hi)return a[lo];
-  return a[lo] + (a[hi]-a[lo])*(idx-lo);
-}
-
-async function fetchEnsembleRange(model,startDate,numP,tag){
-  const s=startDate.toISOString().slice(0,10);
-  const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
-  const url='https://ensemble-api.open-meteo.com/v1/ensemble'
-    +'?latitude='+LAT+'&longitude='+LON
-    +'&hourly=snowfall&models='+encodeURIComponent(model)
-    +'&start_date='+s+'&end_date='+e+'&timezone=UTC';
-  dbgLog((tag||model)+' → '+url.replace('https://ensemble-api.open-meteo.com','…'),'url');
-  const j=await getJ(url);
-  if(j.error)throw new Error(j.reason||((tag||model)+' error'));
-  const times=j.hourly?.time||[];
-  const mks=Object.keys(j.hourly||{}).filter(k=>k.startsWith('snowfall_member'));
-  if(!mks.length)throw new Error('No ensemble members returned');
-  dbgLog((tag||model)+' → '+mks.length+' members, '+times.length+' hours','ok');
-
-  // Build 6-hourly stats directly from members
-  const periods=[];
-  const stormTotals=[];
-  for(let p=0;p<numP;p++){
-    const t0=new Date(startDate.getTime()+p*6*3600000);
-    const memberSums=[];
-    for(let mi=0;mi<mks.length;mi++)memberSums.push(0);
-    let any=false;
-    for(let h=0;h<6;h++){
-      const key=uhk(new Date(t0.getTime()+h*3600000)); // YYYY-MM-DDTHH
-      const i=times.findIndex(t=>t.startsWith(key)); // safe but slower; times is small
-      if(i>=0){
-        any=true;
-        mks.forEach((k,idx)=>{ const v=j.hourly[k][i]; if(v!=null) memberSums[idx]+=v; });
-      }
-    }
-    if(!any){ periods.push(null); continue; }
-    const p10=pct(memberSums,0.10), p90=pct(memberSums,0.90);
-    const mean=memberSums.reduce((a,b)=>a+b,0)/memberSums.length;
-    periods.push({p10:p10*CM_IN,p90:p90*CM_IN,mean:mean*CM_IN});
-  }
-
-  // Storm total across entire requested window
-  // Sum all hours per member within [startDate, startDate+numP*6h)
-  const winEnd=new Date(startDate.getTime()+numP*6*3600000);
-  const memberStorm=new Array(mks.length).fill(0);
-  times.forEach((t,i)=>{
-    const dt=new Date(t+':00Z');
-    if(dt>=startDate && dt<winEnd){
-      mks.forEach((k,idx)=>{ const v=j.hourly[k][i]; if(v!=null) memberStorm[idx]+=v; });
-    }
-  });
-  const t10=pct(memberStorm,0.10), t90=pct(memberStorm,0.90);
-  const tmean=memberStorm.reduce((a,b)=>a+b,0)/memberStorm.length;
-  const total={p10:t10*CM_IN,p90:t90*CM_IN,mean:tmean*CM_IN};
-
-  return{runTime:(tag||model)+' '+mks.length+'-mbr P10–P90',periods,total};
 }
 
 // ════════════════════════════════════════════════════
@@ -518,34 +409,20 @@ async function fetchGEM(startDate,numP){
 // ════════════════════════════════════════════════════
 //  UTILITIES
 // ════════════════════════════════════════════════════
-async function getJ(url,headers={},timeoutMs=20000){
-  const controller = new AbortController();
-  const t = setTimeout(()=>controller.abort(), timeoutMs);
-
+async function getJ(url,headers={}){
   let r;
-  try{
-    r = await fetch(url,{
-      headers:{Accept:'application/json',...headers},
-      signal: controller.signal
-    });
-  }catch(e){
-    clearTimeout(t);
-    if(e.name === 'AbortError') throw new Error('Timeout after '+(timeoutMs/1000)+'s');
-    throw new Error('Network: '+e.message);
-  }
-  clearTimeout(t);
-
-  const txt = await r.text();
+  try{r=await fetch(url,{headers:{Accept:'application/json',...headers}});}
+  catch(e){throw new Error('Network: '+e.message);}
+  const txt=await r.text();
   let j;
-  try{ j = JSON.parse(txt); }
-  catch(e){
+  try{j=JSON.parse(txt);}catch(e){
+    // Log the raw response for debugging
     dbgLog('Bad JSON (first 200 chars): '+txt.slice(0,200),'er');
-    throw new Error('Non-JSON response');
+    throw new Error('Non-JSON response from: '+url.slice(0,60));
   }
-  if(!r.ok) throw new Error(j?.reason||j?.detail||j?.title||('HTTP '+r.status));
+  if(!r.ok)throw new Error(j?.reason||j?.detail||j?.title||'HTTP '+r.status+' from '+url.slice(0,50));
   return j;
 }
-
 
 function buildP(startDate,numP,hrMap,factor){
   return Array.from({length:numP},(_,p)=>{
@@ -576,45 +453,15 @@ function fmtPH(d){
   const h1=String(d.getUTCHours()+6).padStart(2,'0');
   return mo+' '+d.getUTCDate()+'<br/>'+h0+'z–'+h1+'z';
 }
-function fmtOne(x){
-  if(x===null||x===undefined)return'—';
-  if(x<0.005)return'0.0';
-  if(x<0.05)return'T';
-  return x.toFixed(1);
-}
 function fmtV(v){
   if(v===null||v===undefined)return'—';
-  if(v && typeof v==='object' && v.p10!==undefined && v.p90!==undefined){
-    return fmtOne(v.p10)+'–'+fmtOne(v.p90);
-  }
-  return fmtOne(v);
-}
-function vNum(v){
-  if(v===null||v===undefined)return null;
-  if(typeof v==='object'){
-    // Color by upper-end risk
-    if(v.p90!==undefined)return v.p90;
-    if(v.mean!==undefined)return v.mean;
-  }
-  return v;
+  if(v<0.005)return'0.0'; if(v<0.05)return'T';
+  return v.toFixed(1);
 }
 function vCls(v){
-  const x=vNum(v);
-  if(x===null||x===undefined)return'sn';
-  if(x<0.005)return's0'; if(x<0.05)return'sT';
-  if(x<2)return's1'; if(x<5)return's2'; if(x<10)return's3'; return's4';
-}
-
-
-function accRange(a,b){
-  // Combine two {p10,p90,mean} objects safely (either input may be null)
-  if(!b) return a || null;
-  if(!a) return {p10:(b.p10??null), p90:(b.p90??null), mean:(b.mean??null)};
-  return {
-    p10:(a.p10??0)+(b.p10??0),
-    p90:(a.p90??0)+(b.p90??0),
-    mean:(a.mean!=null && b.mean!=null) ? (a.mean+b.mean) : null
-  };
+  if(v===null||v===undefined)return'sn';
+  if(v<0.005)return's0'; if(v<0.05)return'sT';
+  if(v<2)return's1'; if(v<5)return's2'; if(v<10)return's3'; return's4';
 }
 
 // ════════════════════════════════════════════════════
@@ -676,23 +523,20 @@ function renderTable(){
     let html='<td class="tds"'+tip+'>'+src.label
       +'<span class="badge '+src.bc+'">'+src.badge+'</span></td>'
       +'<td class="tdr">'+rl+'</td>';
-    let total=0,has=false; let totalObj=null;
+    let total=0,has=false;
     for(let p=0;p<S.numP;p++){
       const pS=new Date(S.start.getTime()+p*6*3600000);
       if(!inRange(src.id,pS)){
         html+='<td class="oor" title="Outside '+src.id.toUpperCase()+' range">· · ·</td>';
       } else {
         const v=d?d.periods[p]:null;
-        const ed = (src.editable!==false);
-        html+=`<td id="${src.id}-p${p}" class="${vCls(v)}" ${ed?'contenteditable="true" data-src="'+src.id+'" data-p="'+p+'" oninput="onEdit(this)"':''} title="${pS.toUTCString()}${(typeof v==='object'&&v.mean!=null)?' • mean '+fmtOne(v.mean):''}">${fmtV(v)}</td>`;
-        if(v!==null){
-          if(v && v && typeof v==='object' && v.p10!==undefined){ totalObj=accRange(totalObj,v); has=true; }
-          else { total+=v; has=true; }
-        }
+        html+='<td id="'+src.id+'-p'+p+'" class="'+vCls(v)+'" contenteditable="true"'
+          +' data-src="'+src.id+'" data-p="'+p+'" oninput="onEdit(this)"'
+          +' title="'+pS.toUTCString()+'">'+fmtV(v)+'</td>';
+        if(v!==null){total+=v;has=true;}
       }
     }
-    const totVal = (d && d.total!==undefined) ? d.total : (totalObj?totalObj:(has?total:null));
-    html+=`<td class="tdt ${vCls(totVal)}" id="${src.id}-tot">${(totVal&&typeof totVal==='object')?fmtV(totVal):(totVal!=null?totVal.toFixed(1):'—')}</td>`;
+    html+='<td class="tdt '+vCls(has?total:null)+'" id="'+src.id+'-tot">'+(has?total.toFixed(1):'—')+'</td>';
     tr.innerHTML=html; tb.appendChild(tr);
   });
 
