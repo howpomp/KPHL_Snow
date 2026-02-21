@@ -7,619 +7,600 @@
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0a0e14; --panel: #0f1520; --border: #1e2d45;
-      --accent: #2a9fd6; --accent2: #00e5ff; --warn: #f0b429;
-      --dim: #3a4a5c; --text: #cdd6e0;
-      --mono: 'Share Tech Mono', monospace; --sans: 'Barlow Condensed', sans-serif;
+      --bg:#0a0e14; --panel:#0f1520; --border:#1e2d45;
+      --accent:#2a9fd6; --accent2:#00e5ff; --warn:#f0b429;
+      --dim:#3a4a5c; --text:#cdd6e0;
+      --mono:'Share Tech Mono',monospace; --sans:'Barlow Condensed',sans-serif;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; padding-bottom: 60px; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding-bottom:60px}
 
-    header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 16px 28px 12px; display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
-    header h1 { font-size: 2rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent2); line-height: 1; }
-    header h1 span { color: var(--warn); }
-    .header-sub { font-size: .82rem; color: var(--dim); font-family: var(--mono); margin-bottom: 2px; }
-    .header-meta { margin-left: auto; text-align: right; }
-    .header-meta .ts { font-family: var(--mono); font-size: .76rem; color: var(--dim); }
+    header{background:var(--panel);border-bottom:1px solid var(--border);padding:16px 28px 12px;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
+    h1{font-size:2rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent2);line-height:1}
+    h1 span{color:var(--warn)}
+    .hsub{font-size:.82rem;color:var(--dim);font-family:var(--mono);margin-bottom:2px}
+    .hmeta{margin-left:auto;text-align:right}
+    .hmeta .ts{font-family:var(--mono);font-size:.76rem;color:var(--dim)}
 
-    .controls { display: flex; gap: 10px; align-items: center; padding: 12px 28px; background: #0c1119; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-    .controls label { font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); }
-    input[type="date"], input[type="number"] { background: var(--panel); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: .8rem; padding: 5px 9px; border-radius: 3px; outline: none; }
-    input:focus { border-color: var(--accent); }
-    .btn { padding: 6px 16px; background: var(--accent); color: #000; border: none; border-radius: 3px; font-family: var(--sans); font-weight: 700; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .15s; }
-    .btn:hover { background: var(--accent2); }
-    .btn:disabled { opacity: .4; cursor: not-allowed; }
-    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--dim); }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+    .ctrl{display:flex;gap:10px;align-items:center;padding:11px 28px;background:#0c1119;border-bottom:1px solid var(--border);flex-wrap:wrap}
+    .ctrl label{font-size:.76rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
+    input[type=date],input[type=number]{background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:5px 9px;border-radius:3px;outline:none}
+    input:focus{border-color:var(--accent)}
+    .btn{padding:6px 16px;background:var(--accent);color:#000;border:none;border-radius:3px;font-family:var(--sans);font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s}
+    .btn:hover{background:var(--accent2)}
+    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .btng{background:transparent;border:1px solid var(--border);color:var(--dim)}
+    .btng:hover{border-color:var(--accent);color:var(--accent);background:transparent}
 
-    #statusBar { padding: 7px 28px; font-family: var(--mono); font-size: .72rem; min-height: 30px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: #0b1018; }
-    .status-item { display: flex; align-items: center; gap: 5px; cursor: default; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-    .dot-ok { background: #4caf50; }
-    .dot-loading { background: var(--warn); animation: blink 1s infinite; }
-    .dot-err { background: #ef5350; }
-    .dot-manual { background: var(--dim); }
-    @keyframes blink { 0%,100%{opacity:1}50%{opacity:.2} }
+    #sbar{padding:6px 28px;font-family:var(--mono);font-size:.71rem;min-height:28px;display:flex;gap:11px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);background:#0b1018}
+    .si{display:flex;align-items:center;gap:5px;cursor:default}
+    .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .ok{background:#4caf50} .ld{background:var(--warn);animation:bk 1s infinite} .er{background:#ef5350} .mn{background:var(--dim)}
+    @keyframes bk{0%,100%{opacity:1}50%{opacity:.2}}
 
-    .table-wrap { padding: 18px 28px; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: .86rem; min-width: 720px; }
+    .tw{padding:16px 28px;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:.84rem;min-width:700px}
+    thead th{padding:5px 8px;text-align:center;font-family:var(--mono);font-size:.67rem;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);border-bottom:2px solid var(--border);white-space:nowrap}
+    thead th.thl{text-align:left;color:var(--text)}
+    .thg{background:#0c1119;color:var(--accent);font-size:.64rem;padding:3px 8px;border-bottom:1px solid var(--border);letter-spacing:.1em}
+    tr.gd td{padding:3px 10px;background:#0c1119;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    tbody tr{border-bottom:1px solid #111c28;transition:background .1s}
+    tbody tr:hover:not(.gd){background:rgba(42,159,214,.05)}
+    tr.nhl{background:rgba(0,229,255,.035)}
+    tr.nhl:hover{background:rgba(0,229,255,.08)}
+    td{padding:7px 8px;text-align:center;font-family:var(--mono);font-size:.79rem;white-space:nowrap}
+    .tds{text-align:left;font-family:var(--sans);font-weight:600;font-size:.87rem}
+    .tdr{font-size:.68rem;color:var(--dim)}
+    .tdt{font-weight:700;color:var(--accent2);border-left:1px solid var(--border)}
 
-    thead th { padding: 6px 8px; text-align: center; font-family: var(--mono); font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; color: var(--dim); border-bottom: 2px solid var(--border); white-space: nowrap; }
-    thead th.th-left { text-align: left; color: var(--text); }
-    .th-group { background: #0c1119; color: var(--accent); font-size: .66rem; padding: 3px 8px; border-bottom: 1px solid var(--border); letter-spacing: .1em; }
+    /* out-of-range cell styling */
+    .oor{color:#1e3040;font-size:.65rem}
 
-    tr.group-div td { padding: 3px 10px; background: #0c1119; font-family: var(--mono); font-size: .63rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    /* snow heat-map */
+    .sn{color:var(--dim)} .s0{color:#2a4050} .sT{color:#5b9ec9;font-size:.7rem}
+    .s1{color:#9ecae1} .s2{color:#4292c6}
+    .s3{color:#c8e6ff;background:#08519c33;border-radius:3px}
+    .s4{color:#fff;background:#08519c88;border-radius:3px;font-weight:700}
 
-    tbody tr { border-bottom: 1px solid #111c28; transition: background .1s; }
-    tbody tr:hover:not(.group-div) { background: rgba(42,159,214,.05); }
-    tbody tr.nws-hl { background: rgba(0,229,255,.035); }
-    tbody tr.nws-hl:hover { background: rgba(0,229,255,.08); }
+    .badge{display:inline-block;padding:1px 5px;border-radius:2px;font-size:.65rem;font-family:var(--mono);margin-left:5px;vertical-align:middle}
+    .bnws{background:#00e5ff12;color:var(--accent2);border:1px solid #00e5ff28}
+    .bnbm{background:#00bcd412;color:#80deea;border:1px solid #00bcd428}
+    .bgfs{background:#4caf5012;color:#81c784;border:1px solid #4caf5028}
+    .bgef{background:#4caf5009;color:#a5d6a7;border:1px solid #4caf5018}
+    .becm{background:#9c27b012;color:#ce93d8;border:1px solid #9c27b028}
+    .bgem{background:#ff572212;color:#ff8a65;border:1px solid #ff572228}
+    .bhrr{background:#ff980012;color:#ffb74d;border:1px solid #ff980028}
+    .bnam{background:#e91e6312;color:#f48fb1;border:1px solid #e91e6328}
+    .busr{background:#1e2d45;color:var(--dim);border:1px solid #1e2d45}
 
-    td { padding: 8px 8px; text-align: center; font-family: var(--mono); font-size: .8rem; white-space: nowrap; }
-    td.td-src { text-align: left; font-family: var(--sans); font-weight: 600; font-size: .88rem; }
-    td.td-run { font-size: .69rem; color: var(--dim); }
-    td.td-tot { font-weight: 700; color: var(--accent2); border-left: 1px solid var(--border); }
+    td[contenteditable=true]{outline:none;cursor:text}
+    td[contenteditable=true]:focus{background:rgba(42,159,214,.1);outline:1px solid var(--accent);border-radius:2px}
 
-    .sn { color: var(--dim); }
-    .s0 { color: #3a5060; }
-    .sT { color: #5b9ec9; font-size:.7rem; }
-    .s1 { color: #9ecae1; }
-    .s2 { color: #4292c6; }
-    .s3 { color: #c8e6ff; background: #08519c33; border-radius:3px; }
-    .s4 { color: #fff; background: #08519c88; border-radius:3px; font-weight:700; }
+    .leg{display:flex;gap:14px;align-items:center;padding:0 28px 10px;flex-wrap:wrap;font-size:.71rem;color:var(--dim);font-family:var(--mono)}
+    .leg span{display:flex;align-items:center;gap:4px}
+    .notes{padding:0 28px 20px;font-size:.7rem;color:var(--dim);font-family:var(--mono);line-height:2}
+    .notes a{color:var(--accent);text-decoration:none}
+    .notes a:hover{text-decoration:underline}
+    .notes strong{color:#6a8caa}
 
-    .badge { display:inline-block; padding:1px 5px; border-radius:2px; font-size:.66rem; font-family:var(--mono); margin-left:5px; vertical-align:middle; }
-    .b-nws  { background:#00e5ff15;color:var(--accent2);border:1px solid #00e5ff30; }
-    .b-nbm  { background:#00bcd415;color:#80deea;border:1px solid #00bcd430; }
-    .b-gfs  { background:#4caf5015;color:#81c784;border:1px solid #4caf5030; }
-    .b-gefs { background:#4caf5010;color:#a5d6a7;border:1px solid #4caf5020; }
-    .b-ecmwf{ background:#9c27b015;color:#ce93d8;border:1px solid #9c27b030; }
-    .b-gem  { background:#ff572215;color:#ff8a65;border:1px solid #ff572230; }
-    .b-hrrr { background:#ff980015;color:#ffb74d;border:1px solid #ff980030; }
-    .b-nam  { background:#e91e6315;color:#f48fb1;border:1px solid #e91e6330; }
-    .b-user { background:#1e2d45;color:var(--dim);border:1px solid #1e2d45; }
+    #banner{padding:5px 28px;background:#0f1a10;border-bottom:1px solid #1a3020;font-family:var(--mono);font-size:.7rem;color:#66bb6a;display:none}
+    #overlay{position:fixed;inset:0;background:rgba(10,14,20,.9);display:none;align-items:center;justify-content:center;z-index:100}
+    .spb{font-family:var(--mono);font-size:.8rem;color:var(--accent2);text-align:center}
+    .flake{font-size:2.4rem;display:block;margin-bottom:10px;animation:sp 1.4s linear infinite}
+    @keyframes sp{to{transform:rotate(360deg)}}
+    #ssub{font-size:.67rem;color:var(--dim);margin-top:6px;min-height:1.2em}
 
-    td[contenteditable="true"] { outline:none; cursor:text; }
-    td[contenteditable="true"]:focus { background:rgba(42,159,214,.1); outline:1px solid var(--accent); border-radius:2px; }
-
-    .legend { display:flex; gap:16px; align-items:center; padding:0 28px 12px; flex-wrap:wrap; font-size:.72rem; color:var(--dim); font-family:var(--mono); }
-    .legend span { display:flex; align-items:center; gap:4px; }
-
-    .notes { padding:0 28px 20px; font-size:.72rem; color:var(--dim); font-family:var(--mono); line-height:1.9; }
-    .notes a { color:var(--accent); text-decoration:none; }
-    .notes a:hover { text-decoration:underline; }
-    .notes strong { color:#6a8caa; }
-
-    #loadBanner { padding:5px 28px; background:#0f1a10; border-bottom:1px solid #1a3020; font-family:var(--mono); font-size:.7rem; color:#66bb6a; display:none; }
-
-    #overlay { position:fixed; inset:0; background:rgba(10,14,20,.9); display:none; align-items:center; justify-content:center; z-index:100; }
-    .spin-box { font-family:var(--mono); font-size:.82rem; color:var(--accent2); text-align:center; }
-    .spin-box .flake { font-size:2.4rem; display:block; margin-bottom:10px; animation:spin 1.4s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    #spinSub { font-size:.68rem; color:var(--dim); margin-top:6px; min-height:1.2em; }
-
-    .empty-msg { text-align:center; padding:40px; color:var(--dim); font-family:var(--mono); }
-    @media(max-width:600px){ header,.controls,.table-wrap,.legend,.notes{ padding-left:12px; padding-right:12px; } }
+    .emsg{text-align:center;padding:36px;color:var(--dim);font-family:var(--mono)}
+    @media(max-width:600px){header,.ctrl,.tw,.leg,.notes{padding-left:12px;padding-right:12px}}
   </style>
 </head>
 <body>
 
 <div id="overlay">
-  <div class="spin-box">
+  <div class="spb">
     <span class="flake">❄</span>
-    <div id="spinMsg">Fetching forecast data…</div>
-    <div id="spinSub"></div>
+    <div id="smsg">Fetching forecast data…</div>
+    <div id="ssub"></div>
   </div>
 </div>
 
 <header>
   <div>
     <h1>K<span>PHL</span> Snow Forecast</h1>
-    <div class="header-sub">Philadelphia Intl · 39.8729°N 75.2437°W · Elev 36 ft</div>
+    <div class="hsub">Philadelphia Intl · 39.8729°N 75.2437°W · Elev 36 ft</div>
   </div>
-  <div class="header-meta">
-    <div class="ts" id="clock">—</div>
+  <div class="hmeta">
+    <div class="ts" id="clk">—</div>
     <div class="ts" style="color:var(--text);margin-top:2px">Model Comparison Dashboard</div>
   </div>
 </header>
 
-<div id="loadBanner">⟳ Auto-loading current model data on startup…</div>
+<div id="banner">⟳ Auto-loading current model data…</div>
 
-<div class="controls">
+<div class="ctrl">
   <label>Event Start (UTC)</label>
-  <input type="date" id="startDate" />
+  <input type="date" id="startDate"/>
   <label>6-hr Periods</label>
-  <input type="number" id="numPeriods" value="8" min="2" max="24" style="width:56px" />
-  <button class="btn" id="refreshBtn" onclick="fetchAll()">⟳ Refresh</button>
-  <button class="btn btn-ghost" onclick="clearManual()">Clear Manual</button>
-  <button class="btn btn-ghost" onclick="exportCSV()">↓ CSV</button>
-  <span id="lastRefresh" style="font-family:var(--mono);font-size:.68rem;color:var(--dim);margin-left:4px"></span>
+  <input type="number" id="numP" value="8" min="2" max="24" style="width:56px"/>
+  <button class="btn" id="rbtn" onclick="fetchAll()">⟳ Refresh</button>
+  <button class="btn btng" onclick="clearManual()">Clear Manual</button>
+  <button class="btn btng" onclick="exportCSV()">↓ CSV</button>
+  <span id="lrt" style="font-family:var(--mono);font-size:.67rem;color:var(--dim);margin-left:4px"></span>
 </div>
 
-<div id="statusBar"><span style="color:var(--dim);font-size:.7rem">Starting up…</span></div>
+<div id="sbar"><span style="color:var(--dim);font-size:.7rem">Starting up…</span></div>
 
-<div class="table-wrap">
-  <table id="tbl">
-    <thead id="tHead"></thead>
-    <tbody id="tBody"><tr><td colspan="20" class="empty-msg">Loading…</td></tr></tbody>
+<div class="tw">
+  <table>
+    <thead id="th"></thead>
+    <tbody id="tb"><tr><td colspan="20" class="emsg">Loading…</td></tr></tbody>
   </table>
 </div>
 
-<div class="legend">
-  <span><span class="dot dot-ok"></span>Live</span>
-  <span><span class="dot dot-err"></span>Error (hover for details)</span>
-  <span><span class="dot dot-manual"></span>Manual edit</span>
-  <span style="color:var(--text);margin-left:6px">Snow (in):</span>
+<div class="leg">
+  <span><span class="dot ok"></span>Live</span>
+  <span><span class="dot er"></span>Error (hover row for details)</span>
+  <span><span class="dot mn"></span>Manual edit</span>
+  <span style="color:var(--text);margin-left:4px">Snow (in):</span>
   <span class="s0">0.0</span><span class="sT">T</span><span class="s1">0.1–1.9</span>
   <span class="s2">2–4.9</span><span class="s3">5–9.9</span><span class="s4">10+</span>
+  <span class="oor" style="font-size:.71rem;margin-left:4px">· · ·  = outside model range</span>
 </div>
 
 <div class="notes">
-  <strong>Data sources &amp; model strings:</strong><br/>
-  NWS Official — <a href="https://api.weather.gov" target="_blank">api.weather.gov</a> <code>forecastGridData → snowfallAmount</code> (mm→in) ·
-  NBM v4.3 — Open-Meteo <code>ncep_nbm_conus</code> ·
-  GFS — Open-Meteo <code>gfs_seamless</code> ·
-  GEFS Mean — Open-Meteo ensemble API, 31-member average ·
-  ECMWF IFS — Open-Meteo <code>/v1/ecmwf</code> endpoint ·
-  GEM — Open-Meteo <code>gem_seamless</code> ·
-  HRRR — Open-Meteo <code>ncep_hrrr_conus</code> 3km (≤48 hr) ·
-  NAM — Open-Meteo <code>ncep_nam_conus</code> 3km<br/>
-  All snowfall hourly values (cm or mm) → aggregated into 6-hr period totals → converted to inches ·
-  Click any cell to edit manually · Page fetches automatically on load
+  <strong>Endpoints &amp; model strings used:</strong><br/>
+  NWS Official → <a href="https://api.weather.gov" target="_blank">api.weather.gov</a> <code>/gridpoints/PHI/.../forecast/gridded</code> → <code>snowfallAmount</code> (mm→in)<br/>
+  NBM v4.3 → <a href="https://api.open-meteo.com/v1/gfs" target="_blank">api.open-meteo.com/v1/gfs</a> <code>models=nbm_conus</code> · hourly up to 11 days<br/>
+  GFS → <code>/v1/gfs</code> <code>models=gfs_seamless</code> · 16-day range<br/>
+  GEFS Mean → <a href="https://ensemble-api.open-meteo.com/v1/ensemble" target="_blank">ensemble-api.open-meteo.com</a> <code>models=gfs_seamless</code> · 35-day ensemble mean<br/>
+  ECMWF IFS → <a href="https://api.open-meteo.com/v1/ecmwf" target="_blank">api.open-meteo.com/v1/ecmwf</a> · 10-day range<br/>
+  GEM Canadian → <a href="https://api.open-meteo.com/v1/gem" target="_blank">api.open-meteo.com/v1/gem</a> <code>models=gem_seamless</code> · 10-day range<br/>
+  HRRR → <code>/v1/gfs</code> <code>models=hrrr_conus</code> · <strong>18–48 hr range only</strong> — will show "· · ·" outside that window<br/>
+  NAM → <code>/v1/gfs</code> <code>models=nam_conus</code> · <strong>60 hr range only</strong> — will show "· · ·" outside that window
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  CONFIG
-// ═══════════════════════════════════════════════════════════
-const LAT = 39.8729, LON = -75.2437;
-const CM_IN = 0.393701, MM_IN = 0.0393701;
+// ═════════════════════════════════════════════════
+const LAT=39.8729, LON=-75.2437;
+const CM_IN=0.393701, MM_IN=0.0393701;
 
-// Model definitions — id, label, badge text/class, group, fetch function
-// ncep_ prefix required for HRRR, NAM, NBM on Open-Meteo
+// Model range limits in hours from NOW (not from event start)
+// Cells beyond a model's range show "· · ·" instead of a number
+const MODEL_RANGES = {
+  nws:   Infinity,
+  nbm:   264,   // 11 days
+  gfs:   384,   // 16 days
+  gefs:  840,   // 35 days
+  ecmwf: 240,   // 10 days
+  gem:   240,   // 10 days
+  hrrr:  48,    // 48 hrs (main runs), 18 hr for off-cycle
+  nam:   60,    // 60 hrs
+};
+
 const SOURCES = [
-  { id:'nws',   label:'NWS Official', badge:'NWS',  cls:'b-nws',  group:'Official',  fn: fetchNWS   },
-  { id:'nbm',   label:'NBM v4.3',     badge:'NBM',  cls:'b-nbm',  group:'Official',  fn: (s,n) => fetchOM('ncep_nbm_conus',  'gfs', s, n, 7) },
-  { id:'gfs',   label:'GFS Seamless', badge:'GFS',  cls:'b-gfs',  group:'Global',    fn: (s,n) => fetchOM('gfs_seamless',    'gfs', s, n, 16)},
-  { id:'gefs',  label:'GEFS Mean',    badge:'GEFS', cls:'b-gefs', group:'Global',    fn: fetchGEFS  },
-  { id:'ecmwf', label:'ECMWF IFS',    badge:'ECMWF',cls:'b-ecmwf',group:'Global',    fn: fetchECMWF },
-  { id:'gem',   label:'GEM Canadian', badge:'GEM',  cls:'b-gem',  group:'Global',    fn: (s,n) => fetchOM('gem_seamless',    'gfs', s, n, 10)},
-  { id:'hrrr',  label:'HRRR',         badge:'HRRR', cls:'b-hrrr', group:'Mesoscale', fn: (s,n) => fetchOM('ncep_hrrr_conus', 'gfs', s, n, 2) },
-  { id:'nam',   label:'NAM Conus',    badge:'NAM',  cls:'b-nam',  group:'Mesoscale', fn: (s,n) => fetchOM('ncep_nam_conus',  'gfs', s, n, 7) },
+  {id:'nws',  label:'NWS Official', badge:'NWS',  bc:'bnws', group:'Official',  fn:fetchNWS},
+  {id:'nbm',  label:'NBM v4.3',     badge:'NBM',  bc:'bnbm', group:'Official',  fn:(s,n)=>fetchGFS('nbm_conus',s,n,11)},
+  {id:'gfs',  label:'GFS Seamless', badge:'GFS',  bc:'bgfs', group:'Global',    fn:(s,n)=>fetchGFS('gfs_seamless',s,n,16)},
+  {id:'gefs', label:'GEFS Mean',    badge:'GEFS', bc:'bgef', group:'Global',    fn:fetchGEFS},
+  {id:'ecmwf',label:'ECMWF IFS',   badge:'ECMWF',bc:'becm', group:'Global',    fn:fetchECMWF},
+  {id:'gem',  label:'GEM Canadian', badge:'GEM',  bc:'bgem', group:'Global',    fn:fetchGEM},
+  {id:'hrrr', label:'HRRR',         badge:'HRRR', bc:'bhrr', group:'Mesoscale', fn:(s,n)=>fetchGFS('hrrr_conus',s,n,2)},
+  {id:'nam',  label:'NAM Conus',    badge:'NAM',  bc:'bnam', group:'Mesoscale', fn:(s,n)=>fetchGFS('nam_conus',s,n,3)},
 ];
 
-let S = { start: null, numP: 8, data: {}, status: {} };
+let S={start:null,numP:8,data:{},status:{},fetchedAt:null};
 
-// ═══════════════════════════════════════════════════════════
-//  INIT — auto-fetch on page load
-// ═══════════════════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('startDate').value = new Date().toISOString().slice(0, 10);
-  setInterval(tickClock, 1000);
-  tickClock();
-  // Show banner briefly then auto-fetch
-  const banner = document.getElementById('loadBanner');
-  banner.style.display = 'block';
-  setTimeout(() => { banner.style.display = 'none'; fetchAll(); }, 350);
+// ═════════════════════════════════════════════════
+//  INIT
+// ═════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('startDate').value=new Date().toISOString().slice(0,10);
+  setInterval(tickClk,1000); tickClk();
+  const b=document.getElementById('banner');
+  b.style.display='block';
+  setTimeout(()=>{b.style.display='none'; fetchAll();},350);
 });
 
-function tickClock() {
-  document.getElementById('clock').textContent =
-    new Date().toUTCString().replace(/^.*?, /, '').replace(' GMT', '  UTC');
+function tickClk(){
+  document.getElementById('clk').textContent=
+    new Date().toUTCString().replace(/^.*?, /,'').replace(' GMT','  UTC');
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  ORCHESTRATOR
-// ═══════════════════════════════════════════════════════════
-async function fetchAll() {
-  const dateVal = document.getElementById('startDate').value;
-  const numP = Math.max(2, Math.min(24, parseInt(document.getElementById('numPeriods').value) || 8));
-  if (!dateVal) { alert('Select a start date.'); return; }
+// ═════════════════════════════════════════════════
+async function fetchAll(){
+  const dv=document.getElementById('startDate').value;
+  const np=Math.max(2,Math.min(24,parseInt(document.getElementById('numP').value)||8));
+  if(!dv){alert('Select a start date.');return;}
 
-  S.start = new Date(dateVal + 'T00:00:00Z');
-  S.numP  = numP;
-  S.data  = {}; S.status = {};
-  SOURCES.forEach(s => S.status[s.id] = 'loading');
+  S.start=new Date(dv+'T00:00:00Z');
+  S.numP=np; S.data={}; S.status={};
+  S.fetchedAt=new Date();
+  SOURCES.forEach(s=>S.status[s.id]='loading');
 
-  const btn = document.getElementById('refreshBtn');
-  btn.disabled = true;
-  showOverlay('Contacting data sources…');
-  renderStatus(); renderTable();
+  const btn=document.getElementById('rbtn');
+  btn.disabled=true;
+  showOv('Contacting data sources…');
+  renderSbar(); renderTable();
 
-  // Fetch all sources in parallel; update status bar live as each completes
-  await Promise.allSettled(SOURCES.map(async src => {
-    setSub(`Fetching ${src.label}…`);
-    try {
-      S.data[src.id]   = await src.fn(S.start, numP);
-      S.status[src.id] = 'ok';
-    } catch (e) {
-      console.warn(`[${src.id}]`, e.message);
-      S.data[src.id]   = { runTime: null, periods: Array(numP).fill(null), err: e.message };
-      S.status[src.id] = 'error';
+  await Promise.allSettled(SOURCES.map(async src=>{
+    setSub('Fetching '+src.label+'…');
+    try{
+      S.data[src.id]=await src.fn(S.start,np);
+      S.status[src.id]='ok';
+    }catch(e){
+      console.warn('['+src.id+']',e.message);
+      S.data[src.id]={runTime:null,periods:Array(np).fill(null),err:e.message};
+      S.status[src.id]='error';
     }
-    renderStatus(); // update dots live
+    renderSbar();
   }));
 
-  hideOverlay();
-  btn.disabled = false;
-  renderTable();
-  document.getElementById('lastRefresh').textContent =
-    'Refreshed ' + new Date().toUTCString().replace(/^.*?, /, '').replace(' GMT', 'z').slice(0, 9);
+  hideOv(); btn.disabled=false; renderTable();
+  document.getElementById('lrt').textContent=
+    'Refreshed '+new Date().toUTCString().replace(/^.*?, /,'').replace(' GMT','z').slice(0,9);
 }
 
-// ═══════════════════════════════════════════════════════════
-//  NWS OFFICIAL — forecastGridData → snowfallAmount (mm)
-// ═══════════════════════════════════════════════════════════
-async function fetchNWS(startDate, numP) {
-  const H = { 'User-Agent': 'KPHL-Snow-Dashboard/3.0 (howpomp.github.io/KPHL_Snow)' };
+// ═════════════════════════════════════════════════
+//  NWS OFFICIAL  api.weather.gov gridded snowfallAmount (mm)
+// ═════════════════════════════════════════════════
+async function fetchNWS(startDate,numP){
+  const H={'User-Agent':'KPHL-Snow-Dashboard/4.0 (howpomp.github.io/KPHL_Snow)'};
+  const pt=await getJ('https://api.weather.gov/points/'+LAT+','+LON,H);
+  const gd=await getJ(pt.properties.forecastGridData,H);
+  const props=gd.properties;
+  const runTime=props.updateTime?fmtR(new Date(props.updateTime)):'NWS Current';
 
-  // Step 1: resolve grid endpoint
-  const pt  = await getJSON(`https://api.weather.gov/points/${LAT},${LON}`, H);
-  const grd = await getJSON(pt.properties.forecastGridData, H);
-  const props = grd.properties;
-  const runTime = props.updateTime ? fmtRun(new Date(props.updateTime)) : 'NWS Current';
+  // Try snowfallAmount first (mm), fall back to snowfall
+  const vals=(props.snowfallAmount?.values?.length?props.snowfallAmount.values
+             :props.snowfall?.values?.length?props.snowfall.values:[]);
 
-  // snowfallAmount (preferred) or snowfall as fallback
-  const vals = props.snowfallAmount?.values?.length ? props.snowfallAmount.values
-             : props.snowfall?.values?.length       ? props.snowfall.values
-             : [];
-
-  // Parse ISO 8601 duration intervals into per-hour lookup (mm)
-  const hrMap = {};
-  vals.forEach(({ validTime, value }) => {
-    if (value == null) return;
-    const [tStr, dur] = validTime.split('/');
-    const base = new Date(tStr);
-    const hrs  = parseDurH(dur);
-    for (let h = 0; h < hrs; h++) {
-      hrMap[utcHK(new Date(base.getTime() + h * 3600000))] = value;
-    }
+  const hrMap={};
+  vals.forEach(({validTime,value})=>{
+    if(value==null)return;
+    const[tStr,dur]=validTime.split('/');
+    const base=new Date(tStr);
+    const hrs=parseDur(dur);
+    for(let h=0;h<hrs;h++) hrMap[uhk(new Date(base.getTime()+h*3600000))]=value;
   });
 
-  return { runTime, periods: buildP(startDate, numP, hrMap, MM_IN) };
+  return{runTime,periods:buildP(startDate,numP,hrMap,MM_IN)};
 }
 
-// ═══════════════════════════════════════════════════════════
-//  OPEN-METEO GENERIC  (GFS, NBM, HRRR, NAM, GEM)
-//  All use /v1/forecast endpoint; model specified as param
-// ═══════════════════════════════════════════════════════════
-async function fetchOM(model, _ep, startDate, numP, forecastDays = 7) {
-  const s   = startDate.toISOString().slice(0, 10);
-  const end = new Date(startDate.getTime() + numP * 6 * 3600000 + 86400000);
-  const e   = end.toISOString().slice(0, 10);
+// ═════════════════════════════════════════════════
+//  OPEN-METEO /v1/gfs  — GFS, HRRR, NAM, NBM
+//  The NOAA endpoint is /v1/gfs (not /v1/forecast)
+// ═════════════════════════════════════════════════
+async function fetchGFS(model,startDate,numP,forecastDays){
+  const s=startDate.toISOString().slice(0,10);
+  const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
+  const url='https://api.open-meteo.com/v1/gfs'
+    +'?latitude='+LAT+'&longitude='+LON
+    +'&hourly=snowfall&models='+model
+    +'&start_date='+s+'&end_date='+e
+    +'&timezone=UTC&forecast_days='+forecastDays;
 
-  const url = `https://api.open-meteo.com/v1/forecast`
-    + `?latitude=${LAT}&longitude=${LON}`
-    + `&hourly=snowfall&models=${model}`
-    + `&start_date=${s}&end_date=${e}`
-    + `&timezone=UTC&forecast_days=${forecastDays}`;
+  const j=await getJ(url);
+  if(j.error)throw new Error(j.reason||'Open-Meteo /v1/gfs error');
+  const times=j.hourly?.time||[];
+  const snow=j.hourly?.snowfall||[];
+  if(!times.length)throw new Error('No data returned for '+model);
 
-  const json = await getJSON(url);
-  if (json.error) throw new Error(json.reason || 'Open-Meteo API error');
-
-  const times = json.hourly?.time    || [];
-  const snow  = json.hourly?.snowfall|| [];
-  if (!times.length) throw new Error(`No data returned for model: ${model}`);
-
-  const hrMap = {};
-  times.forEach((t, i) => { if (snow[i] != null) hrMap[t.slice(0, 13)] = snow[i]; });
-
-  // Detect if model returned all-zeros (NBM snowfall bug workaround: flag it)
-  const nonZero = snow.filter(v => v != null && v > 0).length;
-  const rt = fmtRun(new Date(times[0]));
-
-  return {
-    runTime: rt,
-    periods: buildP(startDate, numP, hrMap, CM_IN),
-    allZeroWarn: nonZero === 0 && snow.filter(v => v != null).length > 0
-  };
+  const hrMap={};
+  times.forEach((t,i)=>{if(snow[i]!=null)hrMap[t.slice(0,13)]=snow[i];});
+  return{runTime:fmtR(new Date(times[0])),periods:buildP(startDate,numP,hrMap,CM_IN)};
 }
 
-// ═══════════════════════════════════════════════════════════
-//  GEFS ENSEMBLE MEAN  (ensemble-api endpoint)
-// ═══════════════════════════════════════════════════════════
-async function fetchGEFS(startDate, numP) {
-  const s   = startDate.toISOString().slice(0, 10);
-  const end = new Date(startDate.getTime() + numP * 6 * 3600000 + 86400000);
-  const e   = end.toISOString().slice(0, 10);
+// ═════════════════════════════════════════════════
+//  GEFS MEAN  ensemble-api.open-meteo.com
+// ═════════════════════════════════════════════════
+async function fetchGEFS(startDate,numP){
+  const s=startDate.toISOString().slice(0,10);
+  const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
+  const url='https://ensemble-api.open-meteo.com/v1/ensemble'
+    +'?latitude='+LAT+'&longitude='+LON
+    +'&hourly=snowfall&models=gfs_seamless'
+    +'&start_date='+s+'&end_date='+e+'&timezone=UTC';
 
-  const url = `https://ensemble-api.open-meteo.com/v1/ensemble`
-    + `?latitude=${LAT}&longitude=${LON}`
-    + `&hourly=snowfall&models=gfs_seamless`
-    + `&start_date=${s}&end_date=${e}&timezone=UTC`;
+  const j=await getJ(url);
+  if(j.error)throw new Error(j.reason||'GEFS error');
+  const times=j.hourly?.time||[];
+  const mks=Object.keys(j.hourly||{}).filter(k=>k.startsWith('snowfall'));
+  if(!mks.length)throw new Error('No GEFS ensemble members in response');
 
-  const json = await getJSON(url);
-  if (json.error) throw new Error(json.reason || 'GEFS API error');
-
-  const times = json.hourly?.time || [];
-  const mKeys = Object.keys(json.hourly || {}).filter(k => k.startsWith('snowfall'));
-  if (!mKeys.length) throw new Error('No GEFS snowfall ensemble members in response');
-
-  const hrMap = {};
-  times.forEach((t, i) => {
-    let sum = 0, cnt = 0;
-    mKeys.forEach(k => { const v = json.hourly[k][i]; if (v != null) { sum += v; cnt++; } });
-    if (cnt > 0) hrMap[t.slice(0, 13)] = sum / cnt;
+  const hrMap={};
+  times.forEach((t,i)=>{
+    let sum=0,cnt=0;
+    mks.forEach(k=>{const v=j.hourly[k][i];if(v!=null){sum+=v;cnt++;}});
+    if(cnt>0)hrMap[t.slice(0,13)]=sum/cnt;
   });
-
-  return {
-    runTime: `GEFS ${mKeys.length}-mbr mean`,
-    periods: buildP(startDate, numP, hrMap, CM_IN)
-  };
+  return{runTime:'GEFS '+mks.length+'-mbr mean',periods:buildP(startDate,numP,hrMap,CM_IN)};
 }
 
-// ═══════════════════════════════════════════════════════════
-//  ECMWF  (separate /v1/ecmwf endpoint)
-// ═══════════════════════════════════════════════════════════
-async function fetchECMWF(startDate, numP) {
-  const s   = startDate.toISOString().slice(0, 10);
-  const end = new Date(startDate.getTime() + numP * 6 * 3600000 + 86400000);
-  const e   = end.toISOString().slice(0, 10);
+// ═════════════════════════════════════════════════
+//  ECMWF  /v1/ecmwf
+// ═════════════════════════════════════════════════
+async function fetchECMWF(startDate,numP){
+  const s=startDate.toISOString().slice(0,10);
+  const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
+  const url='https://api.open-meteo.com/v1/ecmwf'
+    +'?latitude='+LAT+'&longitude='+LON
+    +'&hourly=snowfall&start_date='+s+'&end_date='+e+'&timezone=UTC';
 
-  const url = `https://api.open-meteo.com/v1/ecmwf`
-    + `?latitude=${LAT}&longitude=${LON}`
-    + `&hourly=snowfall`
-    + `&start_date=${s}&end_date=${e}&timezone=UTC`;
+  const j=await getJ(url);
+  if(j.error)throw new Error(j.reason||'ECMWF error');
+  const times=j.hourly?.time||[];
+  const snow=j.hourly?.snowfall||[];
+  if(!times.length)throw new Error('No ECMWF data returned');
 
-  const json = await getJSON(url);
-  if (json.error) throw new Error(json.reason || 'ECMWF API error');
-
-  const times = json.hourly?.time    || [];
-  const snow  = json.hourly?.snowfall|| [];
-  if (!times.length) throw new Error('No ECMWF data returned');
-
-  const hrMap = {};
-  times.forEach((t, i) => { if (snow[i] != null) hrMap[t.slice(0, 13)] = snow[i]; });
-
-  return { runTime: 'ECMWF IFS 9km', periods: buildP(startDate, numP, hrMap, CM_IN) };
+  const hrMap={};
+  times.forEach((t,i)=>{if(snow[i]!=null)hrMap[t.slice(0,13)]=snow[i];});
+  return{runTime:'ECMWF IFS 9km',periods:buildP(startDate,numP,hrMap,CM_IN)};
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
+//  GEM Canadian  /v1/gem
+// ═════════════════════════════════════════════════
+async function fetchGEM(startDate,numP){
+  const s=startDate.toISOString().slice(0,10);
+  const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
+  const url='https://api.open-meteo.com/v1/gem'
+    +'?latitude='+LAT+'&longitude='+LON
+    +'&hourly=snowfall&models=gem_seamless'
+    +'&start_date='+s+'&end_date='+e+'&timezone=UTC';
+
+  const j=await getJ(url);
+  if(j.error)throw new Error(j.reason||'GEM error');
+  const times=j.hourly?.time||[];
+  const snow=j.hourly?.snowfall||[];
+  if(!times.length)throw new Error('No GEM data returned');
+
+  const hrMap={};
+  times.forEach((t,i)=>{if(snow[i]!=null)hrMap[t.slice(0,13)]=snow[i];});
+  return{runTime:fmtR(new Date(times[0])),periods:buildP(startDate,numP,hrMap,CM_IN)};
+}
+
+// ═════════════════════════════════════════════════
 //  SHARED UTILITIES
-// ═══════════════════════════════════════════════════════════
-async function getJSON(url, headers = {}) {
-  let resp;
-  try {
-    resp = await fetch(url, { headers: { Accept: 'application/json', ...headers } });
-  } catch (e) {
-    throw new Error(`Network error: ${e.message}`);
-  }
-  const text = await resp.text();
-  let json;
-  try { json = JSON.parse(text); }
-  catch (e) { throw new Error(`Invalid JSON from ${url.slice(0, 55)}`); }
-  if (!resp.ok) throw new Error(json?.reason || json?.detail || json?.title || `HTTP ${resp.status}`);
-  return json;
+// ═════════════════════════════════════════════════
+async function getJ(url,headers={}){
+  let r;
+  try{r=await fetch(url,{headers:{Accept:'application/json',...headers}});}
+  catch(e){throw new Error('Network: '+e.message);}
+  const txt=await r.text();
+  let j;
+  try{j=JSON.parse(txt);}
+  catch(e){throw new Error('Bad JSON from '+url.slice(0,55));}
+  if(!r.ok)throw new Error(j?.reason||j?.detail||j?.title||'HTTP '+r.status);
+  return j;
 }
 
-// Build 6-hr period totals from an hourly lookup map
-function buildP(startDate, numP, hrMap, factor) {
-  return Array.from({ length: numP }, (_, p) => {
-    const t0 = new Date(startDate.getTime() + p * 6 * 3600000);
-    let sum = 0, any = false;
-    for (let h = 0; h < 6; h++) {
-      const v = hrMap[utcHK(new Date(t0.getTime() + h * 3600000))];
-      if (v != null) { sum += v; any = true; }
+function buildP(startDate,numP,hrMap,factor){
+  return Array.from({length:numP},(_,p)=>{
+    const t0=new Date(startDate.getTime()+p*6*3600000);
+    let sum=0,any=false;
+    for(let h=0;h<6;h++){
+      const v=hrMap[uhk(new Date(t0.getTime()+h*3600000))];
+      if(v!=null){sum+=v;any=true;}
     }
-    return any ? +((sum * factor).toFixed(2)) : null;
+    return any?+((sum*factor).toFixed(2)):null;
   });
 }
 
-// UTC hour key: "2026-02-21T06"
-function utcHK(d) { return d.toISOString().slice(0, 13); }
-
-// Parse "PT6H" → 6, "PT1H" → 1
-function parseDurH(s) {
-  if (!s) return 1;
-  const m = s.match(/PT(\d+)H/);
-  return m ? +m[1] : 1;
+// Is a 6-hr period starting at t0 within a model's range from now?
+function inRange(modelId,periodStart){
+  const maxHrs=MODEL_RANGES[modelId]??Infinity;
+  const nowMs=S.fetchedAt?S.fetchedAt.getTime():Date.now();
+  const hoursAhead=(periodStart.getTime()-nowMs)/3600000;
+  // Period must START before maxHrs and END before maxHrs+6
+  return hoursAhead < maxHrs;
 }
 
-// Format run time as "Feb 21 06z"
-function fmtRun(d) {
-  if (!d || isNaN(d)) return '—';
-  const mo = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
-  return `${mo} ${d.getUTCDate()} ${String(d.getUTCHours()).padStart(2, '0')}z`;
+function uhk(d){return d.toISOString().slice(0,13);}
+function parseDur(s){if(!s)return 1;const m=s.match(/PT(\d+)H/);return m?+m[1]:1;}
+function fmtR(d){
+  if(!d||isNaN(d))return'—';
+  const mo=d.toLocaleString('en-US',{month:'short',timeZone:'UTC'});
+  return mo+' '+d.getUTCDate()+' '+String(d.getUTCHours()).padStart(2,'0')+'z';
 }
-
-// Period column header HTML
-function fmtPHdr(d) {
-  const mo  = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
-  const day = d.getUTCDate();
-  const h0  = String(d.getUTCHours()).padStart(2, '0');
-  const h1  = String(d.getUTCHours() + 6).padStart(2, '0');
-  return `${mo} ${day}<br/>${h0}z–${h1}z`;
+function fmtPH(d){
+  const mo=d.toLocaleString('en-US',{month:'short',timeZone:'UTC'});
+  const h0=String(d.getUTCHours()).padStart(2,'0');
+  const h1=String(d.getUTCHours()+6).padStart(2,'0');
+  return mo+' '+d.getUTCDate()+'<br/>'+h0+'z–'+h1+'z';
 }
-
-function fmtV(v) {
-  if (v === null || v === undefined) return '—';
-  if (v < 0.005) return '0.0';
-  if (v < 0.05)  return 'T';
+function fmtV(v){
+  if(v===null||v===undefined)return'—';
+  if(v<0.005)return'0.0';
+  if(v<0.05)return'T';
   return v.toFixed(1);
 }
-
-function vCls(v) {
-  if (v === null || v === undefined) return 'sn';
-  if (v < 0.005) return 's0';
-  if (v < 0.05)  return 'sT';
-  if (v < 2)     return 's1';
-  if (v < 5)     return 's2';
-  if (v < 10)    return 's3';
-  return 's4';
+function vCls(v){
+  if(v===null||v===undefined)return'sn';
+  if(v<0.005)return's0';
+  if(v<0.05)return'sT';
+  if(v<2)return's1';
+  if(v<5)return's2';
+  if(v<10)return's3';
+  return's4';
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  RENDER TABLE
-// ═══════════════════════════════════════════════════════════
-function renderTable() {
-  if (!S.start) return;
+// ═════════════════════════════════════════════════
+function renderTable(){
+  if(!S.start)return;
 
-  // ── thead ──
-  const thead = document.getElementById('tHead');
-  thead.innerHTML = '';
+  // thead
+  const th=document.getElementById('th');
+  th.innerHTML='';
+  const gr=document.createElement('tr');
+  gr.innerHTML='<th class="thg thl" colspan="2">Source / Run</th>'
+    +'<th class="thg" colspan="'+S.numP+'">6-Hourly Snowfall Accumulation (inches)</th>'
+    +'<th class="thg">Storm Total</th>';
+  th.appendChild(gr);
 
-  const gr = document.createElement('tr');
-  gr.innerHTML = `<th class="th-group th-left" colspan="2">Source / Run</th>`
-    + `<th class="th-group" colspan="${S.numP}">6-Hourly Snowfall Accumulation (inches)</th>`
-    + `<th class="th-group">Storm Total</th>`;
-  thead.appendChild(gr);
+  const hr=document.createElement('tr');
+  let hh='<th class="thl">Model</th><th>Run Init</th>';
+  for(let p=0;p<S.numP;p++)
+    hh+='<th>'+fmtPH(new Date(S.start.getTime()+p*6*3600000))+'</th>';
+  hh+='<th>Total</th>';
+  hr.innerHTML=hh; th.appendChild(hr);
 
-  const hr2 = document.createElement('tr');
-  let hh = `<th class="th-left">Model</th><th>Run Init</th>`;
-  for (let p = 0; p < S.numP; p++)
-    hh += `<th>${fmtPHdr(new Date(S.start.getTime() + p * 6 * 3600000))}</th>`;
-  hh += `<th>Total</th>`;
-  hr2.innerHTML = hh; thead.appendChild(hr2);
+  // tbody
+  const tb=document.getElementById('tb');
+  tb.innerHTML='';
+  let lastGrp=null;
 
-  // ── tbody ──
-  const tbody = document.getElementById('tBody');
-  tbody.innerHTML = '';
-  let lastGroup = null;
-
-  SOURCES.forEach(src => {
-    // Group divider row
-    if (src.group !== lastGroup) {
-      const dtr = document.createElement('tr');
-      dtr.className = 'group-div';
-      dtr.innerHTML = `<td colspan="${S.numP + 3}">${src.group} Models</td>`;
-      tbody.appendChild(dtr);
-      lastGroup = src.group;
+  SOURCES.forEach(src=>{
+    if(src.group!==lastGrp){
+      const dtr=document.createElement('tr');
+      dtr.className='gd';
+      dtr.innerHTML='<td colspan="'+(S.numP+3)+'">'+src.group+' Models</td>';
+      tb.appendChild(dtr); lastGrp=src.group;
     }
 
-    const d   = S.data[src.id];
-    const st  = S.status[src.id] || 'manual';
-    const tr  = document.createElement('tr');
-    if (src.id === 'nws') tr.className = 'nws-hl';
+    const d=S.data[src.id], st=S.status[src.id]||'manual';
+    const tr=document.createElement('tr');
+    if(src.id==='nws')tr.className='nhl';
 
-    const rl  = d ? (d.runTime || '—') : (st === 'loading' ? '…' : '—');
-    const tip = (st === 'error' && d?.err) ? ` title="${d.err.replace(/"/g,"'")}"` : '';
-    // All-zero warning for NBM snowfall bug
-    const warn = d?.allZeroWarn ? ' ⚠' : '';
+    const rl=d?(d.runTime||'—'):(st==='loading'?'…':'—');
+    const tip=(st==='error'&&d?.err)?' title="'+d.err.replace(/"/g,"'")+'"':'';
 
-    let html = `<td class="td-src"${tip}>${src.label}<span class="badge ${src.cls}">${src.badge}</span></td>`
-             + `<td class="td-run">${rl}${warn}</td>`;
+    let html='<td class="tds"'+tip+'>'+src.label
+      +'<span class="badge '+src.bc+'">'+src.badge+'</span></td>'
+      +'<td class="tdr">'+rl+'</td>';
 
-    let total = 0, hasData = false;
-    for (let p = 0; p < S.numP; p++) {
-      const v = d ? d.periods[p] : null;
-      html += `<td id="${src.id}-p${p}" class="${vCls(v)}" contenteditable="true"`
-            + ` data-src="${src.id}" data-p="${p}" oninput="onEdit(this)"`
-            + ` title="${new Date(S.start.getTime() + p * 6 * 3600000).toUTCString()}">${fmtV(v)}</td>`;
-      if (v !== null) { total += v; hasData = true; }
+    let total=0,hasData=false;
+
+    for(let p=0;p<S.numP;p++){
+      const pStart=new Date(S.start.getTime()+p*6*3600000);
+      const within=inRange(src.id,pStart);
+      const v=d?d.periods[p]:null;
+
+      if(!within){
+        // Out of model range — show styled dots, not editable
+        html+='<td class="oor" title="Outside '+src.label+' forecast range">· · ·</td>';
+      } else {
+        const cls=vCls(v), fmt=fmtV(v);
+        html+='<td id="'+src.id+'-p'+p+'" class="'+cls+'" contenteditable="true"'
+          +' data-src="'+src.id+'" data-p="'+p+'" oninput="onEdit(this)"'
+          +' title="'+pStart.toUTCString()+'">'+fmt+'</td>';
+        if(v!==null){total+=v;hasData=true;}
+      }
     }
 
-    const totFmt = hasData ? total.toFixed(1) : '—';
-    html += `<td class="td-tot ${vCls(hasData ? total : null)}" id="${src.id}-tot">${totFmt}</td>`;
-    tr.innerHTML = html; tbody.appendChild(tr);
+    const totFmt=hasData?total.toFixed(1):'—';
+    html+='<td class="tdt '+vCls(hasData?total:null)+'" id="'+src.id+'-tot">'+totFmt+'</td>';
+    tr.innerHTML=html; tb.appendChild(tr);
   });
 
-  // Manual entry row
-  const mtr = document.createElement('tr');
-  const md  = S.data['manual'];
-  let mh = `<td class="td-src" style="opacity:.55">Manual Entry<span class="badge b-user">USER</span></td>`
-          + `<td class="td-run" style="opacity:.35">—</td>`;
-  let mt = 0, mHas = false;
-  for (let p = 0; p < S.numP; p++) {
-    const v = md?.periods[p] ?? null;
-    mh += `<td id="manual-p${p}" class="${vCls(v)}" contenteditable="true"`
-        + ` data-src="manual" data-p="${p}" oninput="onEdit(this)">${fmtV(v)}</td>`;
-    if (v !== null) { mt += v; mHas = true; }
+  // Manual row
+  const mtr=document.createElement('tr');
+  const md=S.data['manual'];
+  let mh='<td class="tds" style="opacity:.55">Manual Entry<span class="badge busr">USER</span></td>'
+    +'<td class="tdr" style="opacity:.35">—</td>';
+  let mt=0,mHas=false;
+  for(let p=0;p<S.numP;p++){
+    const v=md?.periods[p]??null;
+    mh+='<td id="manual-p'+p+'" class="'+vCls(v)+'" contenteditable="true"'
+      +' data-src="manual" data-p="'+p+'" oninput="onEdit(this)">'+fmtV(v)+'</td>';
+    if(v!==null){mt+=v;mHas=true;}
   }
-  mh += `<td class="td-tot ${vCls(mHas ? mt : null)}" id="manual-tot">${mHas ? mt.toFixed(1) : '—'}</td>`;
-  mtr.innerHTML = mh; tbody.appendChild(mtr);
+  mh+='<td class="tdt '+vCls(mHas?mt:null)+'" id="manual-tot">'+(mHas?mt.toFixed(1):'—')+'</td>';
+  mtr.innerHTML=mh; tb.appendChild(mtr);
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  CELL EDIT
-// ═══════════════════════════════════════════════════════════
-function onEdit(td) {
-  const src = td.dataset.src, p = +td.dataset.p;
-  const raw = td.textContent.trim();
-  if (!S.data[src]) S.data[src] = { runTime: null, periods: Array(S.numP).fill(null) };
-  let v = null;
-  if (/^[Tt]$/.test(raw))               v = 0.02;
-  else if (!raw || /^[—\-]$/.test(raw)) v = null;
-  else { v = parseFloat(raw); if (isNaN(v)) v = null; }
-  S.data[src].periods[p] = v;
-  if (src !== 'manual') S.status[src] = 'manual';
-  td.className = vCls(v);
+// ═════════════════════════════════════════════════
+function onEdit(td){
+  const src=td.dataset.src,p=+td.dataset.p;
+  const raw=td.textContent.trim();
+  if(!S.data[src])S.data[src]={runTime:null,periods:Array(S.numP).fill(null)};
+  let v=null;
+  if(/^[Tt]$/.test(raw))v=0.02;
+  else if(!raw||/^[—\-]$/.test(raw))v=null;
+  else{v=parseFloat(raw);if(isNaN(v))v=null;}
+  S.data[src].periods[p]=v;
+  if(src!=='manual')S.status[src]='manual';
+  td.className=vCls(v);
   recalcTot(src);
 }
 
-function recalcTot(src) {
-  const d = S.data[src]; if (!d) return;
-  let t = 0, has = false;
-  d.periods.forEach(v => { if (v !== null) { t += v; has = true; } });
-  const el = document.getElementById(`${src}-tot`);
-  if (el) { el.textContent = has ? t.toFixed(1) : '—'; el.className = `td-tot ${vCls(has ? t : null)}`; }
+function recalcTot(src){
+  const d=S.data[src];if(!d)return;
+  let t=0,has=false;
+  d.periods.forEach(v=>{if(v!==null){t+=v;has=true;}});
+  const el=document.getElementById(src+'-tot');
+  if(el){el.textContent=has?t.toFixed(1):'—';el.className='tdt '+vCls(has?t:null);}
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  STATUS BAR
-// ═══════════════════════════════════════════════════════════
-function renderStatus() {
-  document.getElementById('statusBar').innerHTML = SOURCES.map(src => {
-    const st  = S.status[src.id] || 'manual';
-    const cls = { ok: 'dot-ok', loading: 'dot-loading', error: 'dot-err', manual: 'dot-manual' }[st] || 'dot-manual';
-    const lbl = { ok: 'Live', loading: '…', error: 'Error', manual: 'Manual' }[st] || '—';
-    const tip = (st === 'error' && S.data[src.id]?.err)
-      ? ` title="${S.data[src.id].err.replace(/"/g, "'")}"` : '';
-    return `<span class="status-item"${tip}><span class="dot ${cls}"></span>${src.label}: ${lbl}</span>`;
+// ═════════════════════════════════════════════════
+function renderSbar(){
+  document.getElementById('sbar').innerHTML=SOURCES.map(src=>{
+    const st=S.status[src.id]||'manual';
+    const dc={ok:'ok',loading:'ld',error:'er',manual:'mn'}[st]||'mn';
+    const lbl={ok:'Live',loading:'…',error:'Error',manual:'Manual'}[st]||'—';
+    const tip=(st==='error'&&S.data[src.id]?.err)
+      ?' title="'+S.data[src.id].err.replace(/"/g,"'")+'"':'';
+    return'<span class="si"'+tip+'><span class="dot '+dc+'"></span>'+src.label+': '+lbl+'</span>';
   }).join('');
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  OVERLAY
-// ═══════════════════════════════════════════════════════════
-function showOverlay(msg) {
-  document.getElementById('spinMsg').textContent = msg;
-  document.getElementById('spinSub').textContent = '';
-  document.getElementById('overlay').style.display = 'flex';
-}
-function setSub(t) { document.getElementById('spinSub').textContent = t; }
-function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
+// ═════════════════════════════════════════════════
+function showOv(m){document.getElementById('smsg').textContent=m;document.getElementById('ssub').textContent='';document.getElementById('overlay').style.display='flex';}
+function setSub(t){document.getElementById('ssub').textContent=t;}
+function hideOv(){document.getElementById('overlay').style.display='none';}
 
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  CLEAR MANUAL
-// ═══════════════════════════════════════════════════════════
-function clearManual() {
-  S.data['manual'] = { runTime: null, periods: Array(S.numP).fill(null) };
-  for (let p = 0; p < S.numP; p++) {
-    const el = document.getElementById(`manual-p${p}`);
-    if (el) { el.textContent = '—'; el.className = 'sn'; }
+// ═════════════════════════════════════════════════
+function clearManual(){
+  S.data['manual']={runTime:null,periods:Array(S.numP).fill(null)};
+  for(let p=0;p<S.numP;p++){
+    const el=document.getElementById('manual-p'+p);
+    if(el){el.textContent='—';el.className='sn';}
   }
-  const tot = document.getElementById('manual-tot');
-  if (tot) { tot.textContent = '—'; tot.className = 'td-tot sn'; }
+  const tot=document.getElementById('manual-tot');
+  if(tot){tot.textContent='—';tot.className='tdt sn';}
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════
 //  CSV EXPORT
-// ═══════════════════════════════════════════════════════════
-function exportCSV() {
-  if (!S.start) { alert('No data to export yet.'); return; }
-  const hdrs = ['Source', 'Run Init'];
-  for (let p = 0; p < S.numP; p++)
-    hdrs.push(new Date(S.start.getTime() + p * 6 * 3600000).toISOString().slice(0, 13) + 'z');
+// ═════════════════════════════════════════════════
+function exportCSV(){
+  if(!S.start){alert('No data yet.');return;}
+  const hdrs=['Source','Run Init'];
+  for(let p=0;p<S.numP;p++)
+    hdrs.push(new Date(S.start.getTime()+p*6*3600000).toISOString().slice(0,13)+'z');
   hdrs.push('Storm Total');
 
-  const allSrc = [...SOURCES, { id: 'manual', label: 'Manual Entry' }];
-  const rows = [hdrs, ...allSrc.map(src => {
-    const d = S.data[src.id];
-    const row = [src.label, d?.runTime || ''];
-    let tot = 0, has = false;
-    for (let p = 0; p < S.numP; p++) {
-      const v = d?.periods[p] ?? null;
-      row.push(v === null ? '' : fmtV(v));
-      if (v !== null) { tot += v; has = true; }
+  const allSrc=[...SOURCES,{id:'manual',label:'Manual Entry'}];
+  const rows=[hdrs,...allSrc.map(src=>{
+    const d=S.data[src.id];
+    const row=[src.label,d?.runTime||''];
+    let tot=0,has=false;
+    for(let p=0;p<S.numP;p++){
+      const v=d?.periods[p]??null;
+      row.push(v===null?'':fmtV(v));
+      if(v!==null){tot+=v;has=true;}
     }
-    row.push(has ? tot.toFixed(1) : '');
+    row.push(has?tot.toFixed(1):'');
     return row;
   })];
 
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const a = Object.assign(document.createElement('a'), {
-    href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
-    download: `KPHL_snow_${S.start.toISOString().slice(0, 10)}.csv`
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=Object.assign(document.createElement('a'),{
+    href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),
+    download:'KPHL_snow_'+S.start.toISOString().slice(0,10)+'.csv'
   });
   a.click();
 }
