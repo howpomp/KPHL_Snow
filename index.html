@@ -27,15 +27,15 @@
     input[type=date],input[type=number]{background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:5px 9px;border-radius:3px;outline:none}
     input:focus{border-color:var(--accent)}
     .btn{padding:6px 16px;background:var(--accent);color:#000;border:none;border-radius:3px;font-family:var(--sans);font-weight:700;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s}
-    .btn:hover{background:var(--accent2)}
-    .btn:disabled{opacity:.4;cursor:not-allowed}
+    .btn:hover{background:var(--accent2)} .btn:disabled{opacity:.4;cursor:not-allowed}
     .btng{background:transparent;border:1px solid var(--border);color:var(--dim)}
     .btng:hover{border-color:var(--accent);color:var(--accent);background:transparent}
 
     #sbar{padding:6px 28px;font-family:var(--mono);font-size:.71rem;min-height:28px;display:flex;gap:11px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);background:#0b1018}
     .si{display:flex;align-items:center;gap:5px;cursor:default}
     .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-    .ok{background:#4caf50} .ld{background:var(--warn);animation:bk 1s infinite} .er{background:#ef5350} .mn{background:var(--dim)}
+    .dok{background:#4caf50} .dld{background:var(--warn);animation:bk 1s infinite}
+    .der{background:#ef5350} .dmn{background:var(--dim)}
     @keyframes bk{0%,100%{opacity:1}50%{opacity:.2}}
 
     .tw{padding:16px 28px;overflow-x:auto}
@@ -46,19 +46,15 @@
     tr.gd td{padding:3px 10px;background:#0c1119;font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
     tbody tr{border-bottom:1px solid #111c28;transition:background .1s}
     tbody tr:hover:not(.gd){background:rgba(42,159,214,.05)}
-    tr.nhl{background:rgba(0,229,255,.035)}
-    tr.nhl:hover{background:rgba(0,229,255,.08)}
+    tr.nhl{background:rgba(0,229,255,.035)} tr.nhl:hover{background:rgba(0,229,255,.08)}
     td{padding:7px 8px;text-align:center;font-family:var(--mono);font-size:.79rem;white-space:nowrap}
     .tds{text-align:left;font-family:var(--sans);font-weight:600;font-size:.87rem}
     .tdr{font-size:.68rem;color:var(--dim)}
     .tdt{font-weight:700;color:var(--accent2);border-left:1px solid var(--border)}
-
-    /* out-of-range cell styling */
     .oor{color:#1e3040;font-size:.65rem}
 
-    /* snow heat-map */
-    .sn{color:var(--dim)} .s0{color:#2a4050} .sT{color:#5b9ec9;font-size:.7rem}
-    .s1{color:#9ecae1} .s2{color:#4292c6}
+    .sn{color:var(--dim)} .s0{color:#2a4050}
+    .sT{color:#5b9ec9;font-size:.7rem} .s1{color:#9ecae1} .s2{color:#4292c6}
     .s3{color:#c8e6ff;background:#08519c33;border-radius:3px}
     .s4{color:#fff;background:#08519c88;border-radius:3px;font-weight:700}
 
@@ -78,9 +74,15 @@
 
     .leg{display:flex;gap:14px;align-items:center;padding:0 28px 10px;flex-wrap:wrap;font-size:.71rem;color:var(--dim);font-family:var(--mono)}
     .leg span{display:flex;align-items:center;gap:4px}
-    .notes{padding:0 28px 20px;font-size:.7rem;color:var(--dim);font-family:var(--mono);line-height:2}
-    .notes a{color:var(--accent);text-decoration:none}
-    .notes a:hover{text-decoration:underline}
+
+    /* Debug panel */
+    #dbg{margin:0 28px 20px;padding:12px;background:#0c1119;border:1px solid var(--border);border-radius:4px;display:none}
+    #dbg h3{font-family:var(--mono);font-size:.72rem;color:var(--accent);margin-bottom:8px;letter-spacing:.1em;text-transform:uppercase}
+    #dbgLog{font-family:var(--mono);font-size:.68rem;color:var(--dim);line-height:1.8;max-height:220px;overflow-y:auto}
+    #dbgLog .ok{color:#4caf50} #dbgLog .er{color:#ef5350} #dbgLog .url{color:#5b9ec9}
+
+    .notes{padding:0 28px 20px;font-size:.7rem;color:var(--dim);font-family:var(--mono);line-height:1.9}
+    .notes a{color:var(--accent);text-decoration:none} .notes a:hover{text-decoration:underline}
     .notes strong{color:#6a8caa}
 
     #banner{padding:5px 28px;background:#0f1a10;border-bottom:1px solid #1a3020;font-family:var(--mono);font-size:.7rem;color:#66bb6a;display:none}
@@ -91,7 +93,7 @@
     #ssub{font-size:.67rem;color:var(--dim);margin-top:6px;min-height:1.2em}
 
     .emsg{text-align:center;padding:36px;color:var(--dim);font-family:var(--mono)}
-    @media(max-width:600px){header,.ctrl,.tw,.leg,.notes{padding-left:12px;padding-right:12px}}
+    @media(max-width:600px){header,.ctrl,.tw,.leg,.notes,#dbg{padding-left:12px;padding-right:12px}}
   </style>
 </head>
 <body>
@@ -125,6 +127,7 @@
   <button class="btn" id="rbtn" onclick="fetchAll()">⟳ Refresh</button>
   <button class="btn btng" onclick="clearManual()">Clear Manual</button>
   <button class="btn btng" onclick="exportCSV()">↓ CSV</button>
+  <button class="btn btng" onclick="toggleDbg()" id="dbgBtn">Debug</button>
   <span id="lrt" style="font-family:var(--mono);font-size:.67rem;color:var(--dim);margin-left:4px"></span>
 </div>
 
@@ -138,63 +141,59 @@
 </div>
 
 <div class="leg">
-  <span><span class="dot ok"></span>Live</span>
-  <span><span class="dot er"></span>Error (hover row for details)</span>
-  <span><span class="dot mn"></span>Manual edit</span>
+  <span><span class="dot dok"></span>Live</span>
+  <span><span class="dot der"></span>Error (hover for details)</span>
+  <span><span class="dot dmn"></span>Manual edit</span>
   <span style="color:var(--text);margin-left:4px">Snow (in):</span>
   <span class="s0">0.0</span><span class="sT">T</span><span class="s1">0.1–1.9</span>
   <span class="s2">2–4.9</span><span class="s3">5–9.9</span><span class="s4">10+</span>
-  <span class="oor" style="font-size:.71rem;margin-left:4px">· · ·  = outside model range</span>
+  <span style="color:var(--dim);margin-left:4px">· · · = outside model range</span>
+</div>
+
+<!-- Debug panel — shows exact URLs called and raw errors -->
+<div id="dbg">
+  <h3>🔧 Debug Log — API Calls &amp; Responses</h3>
+  <div id="dbgLog"><em style="color:var(--dim)">Click Refresh to populate…</em></div>
 </div>
 
 <div class="notes">
-  <strong>Endpoints &amp; model strings used:</strong><br/>
-  NWS Official → <a href="https://api.weather.gov" target="_blank">api.weather.gov</a> <code>/gridpoints/PHI/.../forecast/gridded</code> → <code>snowfallAmount</code> (mm→in)<br/>
-  NBM v4.3 → <a href="https://api.open-meteo.com/v1/gfs" target="_blank">api.open-meteo.com/v1/gfs</a> <code>models=nbm_conus</code> · hourly up to 11 days<br/>
-  GFS → <code>/v1/gfs</code> <code>models=gfs_seamless</code> · 16-day range<br/>
-  GEFS Mean → <a href="https://ensemble-api.open-meteo.com/v1/ensemble" target="_blank">ensemble-api.open-meteo.com</a> <code>models=gfs_seamless</code> · 35-day ensemble mean<br/>
-  ECMWF IFS → <a href="https://api.open-meteo.com/v1/ecmwf" target="_blank">api.open-meteo.com/v1/ecmwf</a> · 10-day range<br/>
-  GEM Canadian → <a href="https://api.open-meteo.com/v1/gem" target="_blank">api.open-meteo.com/v1/gem</a> <code>models=gem_seamless</code> · 10-day range<br/>
-  HRRR → <code>/v1/gfs</code> <code>models=hrrr_conus</code> · <strong>18–48 hr range only</strong> — will show "· · ·" outside that window<br/>
-  NAM → <code>/v1/gfs</code> <code>models=nam_conus</code> · <strong>60 hr range only</strong> — will show "· · ·" outside that window
+  <strong>Sources:</strong>
+  NWS Official (<a href="https://api.weather.gov" target="_blank">api.weather.gov</a> gridded snowfallAmount mm→in) ·
+  NBM/GFS/HRRR/NAM (<a href="https://open-meteo.com/en/docs/gfs-api" target="_blank">open-meteo /v1/forecast</a> with models= param) ·
+  GEFS (<a href="https://ensemble-api.open-meteo.com" target="_blank">ensemble-api.open-meteo.com /v1/ensemble</a>) ·
+  ECMWF (<a href="https://open-meteo.com/en/docs/ecmwf-api" target="_blank">open-meteo /v1/ecmwf</a>) ·
+  GEM (<a href="https://open-meteo.com/en/docs/gem-api" target="_blank">open-meteo /v1/gem</a>) ·
+  Click <strong>Debug</strong> to see exact API URLs and error messages.
 </div>
 
 <script>
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 //  CONFIG
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 const LAT=39.8729, LON=-75.2437;
 const CM_IN=0.393701, MM_IN=0.0393701;
 
-// Model range limits in hours from NOW (not from event start)
-// Cells beyond a model's range show "· · ·" instead of a number
-const MODEL_RANGES = {
-  nws:   Infinity,
-  nbm:   264,   // 11 days
-  gfs:   384,   // 16 days
-  gefs:  840,   // 35 days
-  ecmwf: 240,   // 10 days
-  gem:   240,   // 10 days
-  hrrr:  48,    // 48 hrs (main runs), 18 hr for off-cycle
-  nam:   60,    // 60 hrs
-};
+// Model forecast range limits (hours)
+const RANGES={nws:Infinity,nbm:264,gfs:384,gefs:840,ecmwf:240,gem:240,hrrr:48,nam:60};
 
-const SOURCES = [
+const SOURCES=[
   {id:'nws',  label:'NWS Official', badge:'NWS',  bc:'bnws', group:'Official',  fn:fetchNWS},
-  {id:'nbm',  label:'NBM v4.3',     badge:'NBM',  bc:'bnbm', group:'Official',  fn:(s,n)=>fetchGFS('nbm_conus',s,n,11)},
-  {id:'gfs',  label:'GFS Seamless', badge:'GFS',  bc:'bgfs', group:'Global',    fn:(s,n)=>fetchGFS('gfs_seamless',s,n,16)},
+  {id:'nbm',  label:'NBM v4.3',     badge:'NBM',  bc:'bnbm', group:'Official',  fn:(s,n)=>fetchForecast('nbm_conus',s,n,11)},
+  {id:'gfs',  label:'GFS Seamless', badge:'GFS',  bc:'bgfs', group:'Global',    fn:(s,n)=>fetchForecast('gfs_seamless',s,n,16)},
   {id:'gefs', label:'GEFS Mean',    badge:'GEFS', bc:'bgef', group:'Global',    fn:fetchGEFS},
   {id:'ecmwf',label:'ECMWF IFS',   badge:'ECMWF',bc:'becm', group:'Global',    fn:fetchECMWF},
   {id:'gem',  label:'GEM Canadian', badge:'GEM',  bc:'bgem', group:'Global',    fn:fetchGEM},
-  {id:'hrrr', label:'HRRR',         badge:'HRRR', bc:'bhrr', group:'Mesoscale', fn:(s,n)=>fetchGFS('hrrr_conus',s,n,2)},
-  {id:'nam',  label:'NAM Conus',    badge:'NAM',  bc:'bnam', group:'Mesoscale', fn:(s,n)=>fetchGFS('nam_conus',s,n,3)},
+  {id:'hrrr', label:'HRRR',         badge:'HRRR', bc:'bhrr', group:'Mesoscale', fn:(s,n)=>fetchForecast('hrrr_conus',s,n,2)},
+  {id:'nam',  label:'NAM Conus',    badge:'NAM',  bc:'bnam', group:'Mesoscale', fn:(s,n)=>fetchForecast('nam_conus',s,n,3)},
 ];
 
 let S={start:null,numP:8,data:{},status:{},fetchedAt:null};
+let dbgOpen=false;
+const dbgLines=[];
 
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 //  INIT
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('startDate').value=new Date().toISOString().slice(0,10);
   setInterval(tickClk,1000); tickClk();
@@ -202,15 +201,14 @@ window.addEventListener('DOMContentLoaded',()=>{
   b.style.display='block';
   setTimeout(()=>{b.style.display='none'; fetchAll();},350);
 });
-
 function tickClk(){
   document.getElementById('clk').textContent=
     new Date().toUTCString().replace(/^.*?, /,'').replace(' GMT','  UTC');
 }
 
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 //  ORCHESTRATOR
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 async function fetchAll(){
   const dv=document.getElementById('startDate').value;
   const np=Math.max(2,Math.min(24,parseInt(document.getElementById('numP').value)||8));
@@ -220,6 +218,7 @@ async function fetchAll(){
   S.numP=np; S.data={}; S.status={};
   S.fetchedAt=new Date();
   SOURCES.forEach(s=>S.status[s.id]='loading');
+  dbgLines.length=0; renderDbg();
 
   const btn=document.getElementById('rbtn');
   btn.disabled=true;
@@ -231,12 +230,14 @@ async function fetchAll(){
     try{
       S.data[src.id]=await src.fn(S.start,np);
       S.status[src.id]='ok';
+      dbgLog('✓ '+src.label,'ok');
     }catch(e){
       console.warn('['+src.id+']',e.message);
       S.data[src.id]={runTime:null,periods:Array(np).fill(null),err:e.message};
       S.status[src.id]='error';
+      dbgLog('✗ '+src.label+': '+e.message,'er');
     }
-    renderSbar();
+    renderSbar(); renderDbg();
   }));
 
   hideOv(); btn.disabled=false; renderTable();
@@ -244,59 +245,72 @@ async function fetchAll(){
     'Refreshed '+new Date().toUTCString().replace(/^.*?, /,'').replace(' GMT','z').slice(0,9);
 }
 
-// ═════════════════════════════════════════════════
-//  NWS OFFICIAL  api.weather.gov gridded snowfallAmount (mm)
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+//  NWS OFFICIAL
+// ════════════════════════════════════════════════════
 async function fetchNWS(startDate,numP){
-  const H={'User-Agent':'KPHL-Snow-Dashboard/4.0 (howpomp.github.io/KPHL_Snow)'};
+  const H={'User-Agent':'KPHL-Snow-Dashboard/5.0 (howpomp.github.io/KPHL_Snow)'};
   const pt=await getJ('https://api.weather.gov/points/'+LAT+','+LON,H);
-  const gd=await getJ(pt.properties.forecastGridData,H);
-  const props=gd.properties;
-  const runTime=props.updateTime?fmtR(new Date(props.updateTime)):'NWS Current';
+  const gridUrl=pt.properties.forecastGridData;
+  dbgLog('NWS grid URL: '+gridUrl,'url');
+  const gd=await getJ(gridUrl,H);
+  const p=gd.properties;
+  const rt=p.updateTime?fmtR(new Date(p.updateTime)):'NWS Current';
 
-  // Try snowfallAmount first (mm), fall back to snowfall
-  const vals=(props.snowfallAmount?.values?.length?props.snowfallAmount.values
-             :props.snowfall?.values?.length?props.snowfall.values:[]);
+  const vals=(p.snowfallAmount?.values?.length ? p.snowfallAmount.values
+            : p.snowfall?.values?.length       ? p.snowfall.values : []);
+  dbgLog('NWS snowfallAmount entries: '+vals.length,'ok');
 
   const hrMap={};
   vals.forEach(({validTime,value})=>{
     if(value==null)return;
-    const[tStr,dur]=validTime.split('/');
-    const base=new Date(tStr);
-    const hrs=parseDur(dur);
+    const[ts,dur]=validTime.split('/');
+    const base=new Date(ts), hrs=parseDur(dur);
     for(let h=0;h<hrs;h++) hrMap[uhk(new Date(base.getTime()+h*3600000))]=value;
   });
-
-  return{runTime,periods:buildP(startDate,numP,hrMap,MM_IN)};
+  return{runTime:rt,periods:buildP(startDate,numP,hrMap,MM_IN)};
 }
 
-// ═════════════════════════════════════════════════
-//  OPEN-METEO /v1/gfs  — GFS, HRRR, NAM, NBM
-//  The NOAA endpoint is /v1/gfs (not /v1/forecast)
-// ═════════════════════════════════════════════════
-async function fetchGFS(model,startDate,numP,forecastDays){
-  const s=startDate.toISOString().slice(0,10);
-  const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
-  const url='https://api.open-meteo.com/v1/gfs'
-    +'?latitude='+LAT+'&longitude='+LON
-    +'&hourly=snowfall&models='+model
-    +'&start_date='+s+'&end_date='+e
-    +'&timezone=UTC&forecast_days='+forecastDays;
+// ════════════════════════════════════════════════════
+//  OPEN-METEO /v1/forecast  (GFS, NBM, HRRR, NAM)
+//  Uses forecast_hours to avoid start_date/end_date conflicts
+// ════════════════════════════════════════════════════
+async function fetchForecast(model,startDate,numP,maxDays){
+  // Calculate how many hours ahead the event end is from NOW
+  const nowMs=Date.now();
+  const eventEndMs=startDate.getTime()+numP*6*3600000;
+  const hoursNeeded=Math.ceil((eventEndMs-nowMs)/3600000)+6; // +6 buffer
+  const forecastHours=Math.max(24,Math.min(maxDays*24, hoursNeeded));
 
+  // Also need past_hours if event start is in the past
+  const hoursBack=Math.max(0,Math.ceil((nowMs-startDate.getTime())/3600000));
+  const pastHours=Math.min(hoursBack+1,168); // max 7 days back
+
+  const url='https://api.open-meteo.com/v1/forecast'
+    +'?latitude='+LAT+'&longitude='+LON
+    +'&hourly=snowfall'
+    +'&models='+model
+    +'&forecast_hours='+forecastHours
+    +(pastHours>0?'&past_hours='+pastHours:'')
+    +'&timezone=UTC';
+
+  dbgLog(model+' → '+url.replace('https://api.open-meteo.com','…'),'url');
   const j=await getJ(url);
-  if(j.error)throw new Error(j.reason||'Open-Meteo /v1/gfs error');
+  if(j.error)throw new Error(j.reason||'Open-Meteo error for '+model);
+
   const times=j.hourly?.time||[];
   const snow=j.hourly?.snowfall||[];
-  if(!times.length)throw new Error('No data returned for '+model);
+  if(!times.length)throw new Error('No data: '+model);
+  dbgLog(model+' → '+times.length+' hours returned, non-null snow: '+snow.filter(v=>v!=null).length,'ok');
 
   const hrMap={};
   times.forEach((t,i)=>{if(snow[i]!=null)hrMap[t.slice(0,13)]=snow[i];});
   return{runTime:fmtR(new Date(times[0])),periods:buildP(startDate,numP,hrMap,CM_IN)};
 }
 
-// ═════════════════════════════════════════════════
-//  GEFS MEAN  ensemble-api.open-meteo.com
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+//  GEFS ENSEMBLE MEAN
+// ════════════════════════════════════════════════════
 async function fetchGEFS(startDate,numP){
   const s=startDate.toISOString().slice(0,10);
   const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
@@ -304,13 +318,13 @@ async function fetchGEFS(startDate,numP){
     +'?latitude='+LAT+'&longitude='+LON
     +'&hourly=snowfall&models=gfs_seamless'
     +'&start_date='+s+'&end_date='+e+'&timezone=UTC';
-
+  dbgLog('GEFS → '+url.replace('https://ensemble-api.open-meteo.com','…'),'url');
   const j=await getJ(url);
   if(j.error)throw new Error(j.reason||'GEFS error');
   const times=j.hourly?.time||[];
   const mks=Object.keys(j.hourly||{}).filter(k=>k.startsWith('snowfall'));
-  if(!mks.length)throw new Error('No GEFS ensemble members in response');
-
+  if(!mks.length)throw new Error('No GEFS members returned');
+  dbgLog('GEFS → '+mks.length+' members, '+times.length+' hours','ok');
   const hrMap={};
   times.forEach((t,i)=>{
     let sum=0,cnt=0;
@@ -320,30 +334,30 @@ async function fetchGEFS(startDate,numP){
   return{runTime:'GEFS '+mks.length+'-mbr mean',periods:buildP(startDate,numP,hrMap,CM_IN)};
 }
 
-// ═════════════════════════════════════════════════
-//  ECMWF  /v1/ecmwf
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+//  ECMWF
+// ════════════════════════════════════════════════════
 async function fetchECMWF(startDate,numP){
   const s=startDate.toISOString().slice(0,10);
   const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
   const url='https://api.open-meteo.com/v1/ecmwf'
     +'?latitude='+LAT+'&longitude='+LON
     +'&hourly=snowfall&start_date='+s+'&end_date='+e+'&timezone=UTC';
-
+  dbgLog('ECMWF → '+url.replace('https://api.open-meteo.com','…'),'url');
   const j=await getJ(url);
   if(j.error)throw new Error(j.reason||'ECMWF error');
   const times=j.hourly?.time||[];
   const snow=j.hourly?.snowfall||[];
-  if(!times.length)throw new Error('No ECMWF data returned');
-
+  if(!times.length)throw new Error('No ECMWF data');
+  dbgLog('ECMWF → '+times.length+' hours','ok');
   const hrMap={};
   times.forEach((t,i)=>{if(snow[i]!=null)hrMap[t.slice(0,13)]=snow[i];});
   return{runTime:'ECMWF IFS 9km',periods:buildP(startDate,numP,hrMap,CM_IN)};
 }
 
-// ═════════════════════════════════════════════════
-//  GEM Canadian  /v1/gem
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+//  GEM Canadian
+// ════════════════════════════════════════════════════
 async function fetchGEM(startDate,numP){
   const s=startDate.toISOString().slice(0,10);
   const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
@@ -351,30 +365,33 @@ async function fetchGEM(startDate,numP){
     +'?latitude='+LAT+'&longitude='+LON
     +'&hourly=snowfall&models=gem_seamless'
     +'&start_date='+s+'&end_date='+e+'&timezone=UTC';
-
+  dbgLog('GEM → '+url.replace('https://api.open-meteo.com','…'),'url');
   const j=await getJ(url);
   if(j.error)throw new Error(j.reason||'GEM error');
   const times=j.hourly?.time||[];
   const snow=j.hourly?.snowfall||[];
-  if(!times.length)throw new Error('No GEM data returned');
-
+  if(!times.length)throw new Error('No GEM data');
+  dbgLog('GEM → '+times.length+' hours','ok');
   const hrMap={};
   times.forEach((t,i)=>{if(snow[i]!=null)hrMap[t.slice(0,13)]=snow[i];});
   return{runTime:fmtR(new Date(times[0])),periods:buildP(startDate,numP,hrMap,CM_IN)};
 }
 
-// ═════════════════════════════════════════════════
-//  SHARED UTILITIES
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════════════
 async function getJ(url,headers={}){
   let r;
   try{r=await fetch(url,{headers:{Accept:'application/json',...headers}});}
   catch(e){throw new Error('Network: '+e.message);}
   const txt=await r.text();
   let j;
-  try{j=JSON.parse(txt);}
-  catch(e){throw new Error('Bad JSON from '+url.slice(0,55));}
-  if(!r.ok)throw new Error(j?.reason||j?.detail||j?.title||'HTTP '+r.status);
+  try{j=JSON.parse(txt);}catch(e){
+    // Log the raw response for debugging
+    dbgLog('Bad JSON (first 200 chars): '+txt.slice(0,200),'er');
+    throw new Error('Non-JSON response from: '+url.slice(0,60));
+  }
+  if(!r.ok)throw new Error(j?.reason||j?.detail||j?.title||'HTTP '+r.status+' from '+url.slice(0,50));
   return j;
 }
 
@@ -390,15 +407,10 @@ function buildP(startDate,numP,hrMap,factor){
   });
 }
 
-// Is a 6-hr period starting at t0 within a model's range from now?
-function inRange(modelId,periodStart){
-  const maxHrs=MODEL_RANGES[modelId]??Infinity;
-  const nowMs=S.fetchedAt?S.fetchedAt.getTime():Date.now();
-  const hoursAhead=(periodStart.getTime()-nowMs)/3600000;
-  // Period must START before maxHrs and END before maxHrs+6
-  return hoursAhead < maxHrs;
+function inRange(id,pStart){
+  const maxH=RANGES[id]??Infinity;
+  return(pStart.getTime()-S.fetchedAt.getTime())/3600000<maxH;
 }
-
 function uhk(d){return d.toISOString().slice(0,13);}
 function parseDur(s){if(!s)return 1;const m=s.match(/PT(\d+)H/);return m?+m[1]:1;}
 function fmtR(d){
@@ -414,27 +426,42 @@ function fmtPH(d){
 }
 function fmtV(v){
   if(v===null||v===undefined)return'—';
-  if(v<0.005)return'0.0';
-  if(v<0.05)return'T';
+  if(v<0.005)return'0.0'; if(v<0.05)return'T';
   return v.toFixed(1);
 }
 function vCls(v){
   if(v===null||v===undefined)return'sn';
-  if(v<0.005)return's0';
-  if(v<0.05)return'sT';
-  if(v<2)return's1';
-  if(v<5)return's2';
-  if(v<10)return's3';
-  return's4';
+  if(v<0.005)return's0'; if(v<0.05)return'sT';
+  if(v<2)return's1'; if(v<5)return's2'; if(v<10)return's3'; return's4';
 }
 
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+//  DEBUG LOG
+// ════════════════════════════════════════════════════
+function dbgLog(msg,cls){
+  dbgLines.push({msg,cls:cls||''});
+  if(dbgOpen)renderDbg();
+}
+function renderDbg(){
+  const el=document.getElementById('dbgLog');
+  if(!el)return;
+  if(!dbgLines.length){el.innerHTML='<em style="color:var(--dim)">No log entries yet.</em>';return;}
+  el.innerHTML=dbgLines.map(l=>'<div class="'+l.cls+'">'+escHtml(l.msg)+'</div>').join('');
+  el.scrollTop=el.scrollHeight;
+}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toggleDbg(){
+  dbgOpen=!dbgOpen;
+  document.getElementById('dbg').style.display=dbgOpen?'block':'none';
+  document.getElementById('dbgBtn').textContent=dbgOpen?'Hide Debug':'Debug';
+  if(dbgOpen)renderDbg();
+}
+
+// ════════════════════════════════════════════════════
 //  RENDER TABLE
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 function renderTable(){
   if(!S.start)return;
-
-  // thead
   const th=document.getElementById('th');
   th.innerHTML='';
   const gr=document.createElement('tr');
@@ -442,7 +469,6 @@ function renderTable(){
     +'<th class="thg" colspan="'+S.numP+'">6-Hourly Snowfall Accumulation (inches)</th>'
     +'<th class="thg">Storm Total</th>';
   th.appendChild(gr);
-
   const hr=document.createElement('tr');
   let hh='<th class="thl">Model</th><th>Run Init</th>';
   for(let p=0;p<S.numP;p++)
@@ -450,51 +476,38 @@ function renderTable(){
   hh+='<th>Total</th>';
   hr.innerHTML=hh; th.appendChild(hr);
 
-  // tbody
   const tb=document.getElementById('tb');
   tb.innerHTML='';
-  let lastGrp=null;
-
+  let lastG=null;
   SOURCES.forEach(src=>{
-    if(src.group!==lastGrp){
-      const dtr=document.createElement('tr');
-      dtr.className='gd';
+    if(src.group!==lastG){
+      const dtr=document.createElement('tr'); dtr.className='gd';
       dtr.innerHTML='<td colspan="'+(S.numP+3)+'">'+src.group+' Models</td>';
-      tb.appendChild(dtr); lastGrp=src.group;
+      tb.appendChild(dtr); lastG=src.group;
     }
-
-    const d=S.data[src.id], st=S.status[src.id]||'manual';
+    const d=S.data[src.id],st=S.status[src.id]||'manual';
     const tr=document.createElement('tr');
     if(src.id==='nws')tr.className='nhl';
-
     const rl=d?(d.runTime||'—'):(st==='loading'?'…':'—');
     const tip=(st==='error'&&d?.err)?' title="'+d.err.replace(/"/g,"'")+'"':'';
 
     let html='<td class="tds"'+tip+'>'+src.label
       +'<span class="badge '+src.bc+'">'+src.badge+'</span></td>'
       +'<td class="tdr">'+rl+'</td>';
-
-    let total=0,hasData=false;
-
+    let total=0,has=false;
     for(let p=0;p<S.numP;p++){
-      const pStart=new Date(S.start.getTime()+p*6*3600000);
-      const within=inRange(src.id,pStart);
-      const v=d?d.periods[p]:null;
-
-      if(!within){
-        // Out of model range — show styled dots, not editable
-        html+='<td class="oor" title="Outside '+src.label+' forecast range">· · ·</td>';
+      const pS=new Date(S.start.getTime()+p*6*3600000);
+      if(!inRange(src.id,pS)){
+        html+='<td class="oor" title="Outside '+src.id.toUpperCase()+' range">· · ·</td>';
       } else {
-        const cls=vCls(v), fmt=fmtV(v);
-        html+='<td id="'+src.id+'-p'+p+'" class="'+cls+'" contenteditable="true"'
+        const v=d?d.periods[p]:null;
+        html+='<td id="'+src.id+'-p'+p+'" class="'+vCls(v)+'" contenteditable="true"'
           +' data-src="'+src.id+'" data-p="'+p+'" oninput="onEdit(this)"'
-          +' title="'+pStart.toUTCString()+'">'+fmt+'</td>';
-        if(v!==null){total+=v;hasData=true;}
+          +' title="'+pS.toUTCString()+'">'+fmtV(v)+'</td>';
+        if(v!==null){total+=v;has=true;}
       }
     }
-
-    const totFmt=hasData?total.toFixed(1):'—';
-    html+='<td class="tdt '+vCls(hasData?total:null)+'" id="'+src.id+'-tot">'+totFmt+'</td>';
+    html+='<td class="tdt '+vCls(has?total:null)+'" id="'+src.id+'-tot">'+(has?total.toFixed(1):'—')+'</td>';
     tr.innerHTML=html; tb.appendChild(tr);
   });
 
@@ -514,9 +527,9 @@ function renderTable(){
   mtr.innerHTML=mh; tb.appendChild(mtr);
 }
 
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 //  CELL EDIT
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 function onEdit(td){
   const src=td.dataset.src,p=+td.dataset.p;
   const raw=td.textContent.trim();
@@ -527,25 +540,23 @@ function onEdit(td){
   else{v=parseFloat(raw);if(isNaN(v))v=null;}
   S.data[src].periods[p]=v;
   if(src!=='manual')S.status[src]='manual';
-  td.className=vCls(v);
-  recalcTot(src);
+  td.className=vCls(v); recalcTot(src);
 }
-
 function recalcTot(src){
-  const d=S.data[src];if(!d)return;
+  const d=S.data[src]; if(!d)return;
   let t=0,has=false;
   d.periods.forEach(v=>{if(v!==null){t+=v;has=true;}});
   const el=document.getElementById(src+'-tot');
   if(el){el.textContent=has?t.toFixed(1):'—';el.className='tdt '+vCls(has?t:null);}
 }
 
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 //  STATUS BAR
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
 function renderSbar(){
   document.getElementById('sbar').innerHTML=SOURCES.map(src=>{
     const st=S.status[src.id]||'manual';
-    const dc={ok:'ok',loading:'ld',error:'er',manual:'mn'}[st]||'mn';
+    const dc={ok:'dok',loading:'dld',error:'der',manual:'dmn'}[st]||'dmn';
     const lbl={ok:'Live',loading:'…',error:'Error',manual:'Manual'}[st]||'—';
     const tip=(st==='error'&&S.data[src.id]?.err)
       ?' title="'+S.data[src.id].err.replace(/"/g,"'")+'"':'';
@@ -553,16 +564,13 @@ function renderSbar(){
   }).join('');
 }
 
-// ═════════════════════════════════════════════════
-//  OVERLAY
-// ═════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+//  OVERLAY / CLEAR / CSV
+// ════════════════════════════════════════════════════
 function showOv(m){document.getElementById('smsg').textContent=m;document.getElementById('ssub').textContent='';document.getElementById('overlay').style.display='flex';}
 function setSub(t){document.getElementById('ssub').textContent=t;}
 function hideOv(){document.getElementById('overlay').style.display='none';}
 
-// ═════════════════════════════════════════════════
-//  CLEAR MANUAL
-// ═════════════════════════════════════════════════
 function clearManual(){
   S.data['manual']={runTime:null,periods:Array(S.numP).fill(null)};
   for(let p=0;p<S.numP;p++){
@@ -573,16 +581,12 @@ function clearManual(){
   if(tot){tot.textContent='—';tot.className='tdt sn';}
 }
 
-// ═════════════════════════════════════════════════
-//  CSV EXPORT
-// ═════════════════════════════════════════════════
 function exportCSV(){
   if(!S.start){alert('No data yet.');return;}
   const hdrs=['Source','Run Init'];
   for(let p=0;p<S.numP;p++)
     hdrs.push(new Date(S.start.getTime()+p*6*3600000).toISOString().slice(0,13)+'z');
   hdrs.push('Storm Total');
-
   const allSrc=[...SOURCES,{id:'manual',label:'Manual Entry'}];
   const rows=[hdrs,...allSrc.map(src=>{
     const d=S.data[src.id];
@@ -596,7 +600,6 @@ function exportCSV(){
     row.push(has?tot.toFixed(1):'');
     return row;
   })];
-
   const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=Object.assign(document.createElement('a'),{
     href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),
