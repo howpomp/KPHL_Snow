@@ -63,6 +63,7 @@
     .bnbm{background:#00bcd412;color:#80deea;border:1px solid #00bcd428}
     .bgfs{background:#4caf5012;color:#81c784;border:1px solid #4caf5028}
     .bgef{background:#4caf5009;color:#a5d6a7;border:1px solid #4caf5018}
+    .bens{background:#90a4ae12;color:#cfd8dc;border:1px solid #90a4ae28}
     .becm{background:#9c27b012;color:#ce93d8;border:1px solid #9c27b028}
     .bgem{background:#ff572212;color:#ff8a65;border:1px solid #ff572228}
     .bhrr{background:#ff980012;color:#ffb74d;border:1px solid #ff980028}
@@ -174,13 +175,16 @@ const LAT=39.8729, LON=-75.2437;
 const CM_IN=0.393701, MM_IN=0.0393701;
 
 // Model forecast range limits (hours)
-const RANGES={nws:Infinity,nbm:264,gfs:384,gefs:840,ecmwf:240,gem:240,hrrr:48,nam:60};
+const RANGES={nws:Infinity,nbm:264,gfs:384,gefs:840,gefsrng:840,gfsens:240,ifsens:360,ecmwf:240,gem:240,hrrr:48,nam:60};
 
 const SOURCES=[
   {id:'nws',  label:'NWS Official', badge:'NWS',  bc:'bnws', group:'Official',  fn:fetchNWS},
   {id:'nbm',  label:'NBM v4.3',     badge:'NBM',  bc:'bnbm', group:'Official',  fn:(s,n)=>fetchGfsEndpoint('ncep_nbm_conus', s,n,11)},
   {id:'gfs',  label:'GFS Seamless', badge:'GFS',  bc:'bgfs', group:'Global',    fn:(s,n)=>fetchForecast('gfs_seamless',s,n,16)},
   {id:'gefs', label:'GEFS Mean',    badge:'GEFS', bc:'bgef', group:'Global',    fn:fetchGEFS},
+  {id:'gefsrng',label:'GEFS Range',   badge:'ENS',  bc:'bens', group:'Global', editable:false, fn:(s,n)=>fetchEnsembleRange('gfs_seamless',s,n,'GEFS')},
+  {id:'gfsens', label:'GFS Ens (P10–P90)', badge:'ENS', bc:'bens', group:'Global', editable:false, fn:(s,n)=>fetchEnsembleRange('gfs025',s,n,'GFS ENS')},
+  {id:'ifsens', label:'ECMWF ENS (P10–P90)', badge:'ENS', bc:'bens', group:'Global', editable:false, fn:(s,n)=>fetchEnsembleRange('ecmwf_ifs025_ensemble',s,n,'ECMWF ENS')},
   {id:'ecmwf',label:'ECMWF IFS',   badge:'ECMWF',bc:'becm', group:'Global',    fn:fetchECMWF},
   {id:'gem',  label:'GEM Canadian', badge:'GEM',  bc:'bgem', group:'Global',    fn:fetchGEM},
   {id:'hrrr', label:'HRRR',         badge:'HRRR', bc:'bhrr', group:'Mesoscale', fn:(s,n)=>fetchGfsEndpoint('ncep_hrrr_conus', s,n,2)},
@@ -363,6 +367,70 @@ async function fetchGEFS(startDate,numP){
   return{runTime:'GEFS '+mks.length+'-mbr mean',periods:buildP(startDate,numP,hrMap,CM_IN)};
 }
 
+
+function pct(arr,p){
+  if(!arr.length)return null;
+  const a=[...arr].sort((x,y)=>x-y);
+  const idx=(a.length-1)*p;
+  const lo=Math.floor(idx), hi=Math.ceil(idx);
+  if(lo===hi)return a[lo];
+  return a[lo] + (a[hi]-a[lo])*(idx-lo);
+}
+
+async function fetchEnsembleRange(model,startDate,numP,tag){
+  const s=startDate.toISOString().slice(0,10);
+  const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
+  const url='https://ensemble-api.open-meteo.com/v1/ensemble'
+    +'?latitude='+LAT+'&longitude='+LON
+    +'&hourly=snowfall&models='+encodeURIComponent(model)
+    +'&start_date='+s+'&end_date='+e+'&timezone=UTC';
+  dbgLog((tag||model)+' → '+url.replace('https://ensemble-api.open-meteo.com','…'),'url');
+  const j=await getJ(url);
+  if(j.error)throw new Error(j.reason||((tag||model)+' error'));
+  const times=j.hourly?.time||[];
+  const mks=Object.keys(j.hourly||{}).filter(k=>k.startsWith('snowfall_member'));
+  if(!mks.length)throw new Error('No ensemble members returned');
+  dbgLog((tag||model)+' → '+mks.length+' members, '+times.length+' hours','ok');
+
+  // Build 6-hourly stats directly from members
+  const periods=[];
+  const stormTotals=[];
+  for(let p=0;p<numP;p++){
+    const t0=new Date(startDate.getTime()+p*6*3600000);
+    const memberSums=[];
+    for(let mi=0;mi<mks.length;mi++)memberSums.push(0);
+    let any=false;
+    for(let h=0;h<6;h++){
+      const key=uhk(new Date(t0.getTime()+h*3600000)); // YYYY-MM-DDTHH
+      const i=times.findIndex(t=>t.startsWith(key)); // safe but slower; times is small
+      if(i>=0){
+        any=true;
+        mks.forEach((k,idx)=>{ const v=j.hourly[k][i]; if(v!=null) memberSums[idx]+=v; });
+      }
+    }
+    if(!any){ periods.push(null); continue; }
+    const p10=pct(memberSums,0.10), p90=pct(memberSums,0.90);
+    const mean=memberSums.reduce((a,b)=>a+b,0)/memberSums.length;
+    periods.push({p10:p10*CM_IN,p90:p90*CM_IN,mean:mean*CM_IN});
+  }
+
+  // Storm total across entire requested window
+  // Sum all hours per member within [startDate, startDate+numP*6h)
+  const winEnd=new Date(startDate.getTime()+numP*6*3600000);
+  const memberStorm=new Array(mks.length).fill(0);
+  times.forEach((t,i)=>{
+    const dt=new Date(t+':00Z');
+    if(dt>=startDate && dt<winEnd){
+      mks.forEach((k,idx)=>{ const v=j.hourly[k][i]; if(v!=null) memberStorm[idx]+=v; });
+    }
+  });
+  const t10=pct(memberStorm,0.10), t90=pct(memberStorm,0.90);
+  const tmean=memberStorm.reduce((a,b)=>a+b,0)/memberStorm.length;
+  const total={p10:t10*CM_IN,p90:t90*CM_IN,mean:tmean*CM_IN};
+
+  return{runTime:(tag||model)+' '+mks.length+'-mbr P10–P90',periods,total};
+}
+
 // ════════════════════════════════════════════════════
 //  ECMWF
 // ════════════════════════════════════════════════════
@@ -453,17 +521,41 @@ function fmtPH(d){
   const h1=String(d.getUTCHours()+6).padStart(2,'0');
   return mo+' '+d.getUTCDate()+'<br/>'+h0+'z–'+h1+'z';
 }
+function fmtOne(x){
+  if(x===null||x===undefined)return'—';
+  if(x<0.005)return'0.0';
+  if(x<0.05)return'T';
+  return x.toFixed(1);
+}
 function fmtV(v){
   if(v===null||v===undefined)return'—';
-  if(v<0.005)return'0.0'; if(v<0.05)return'T';
-  return v.toFixed(1);
+  if(typeof v==='object' && v.p10!==undefined && v.p90!==undefined){
+    return fmtOne(v.p10)+'–'+fmtOne(v.p90);
+  }
+  return fmtOne(v);
+}
+function vNum(v){
+  if(v===null||v===undefined)return null;
+  if(typeof v==='object'){
+    // Color by upper-end risk
+    if(v.p90!==undefined)return v.p90;
+    if(v.mean!==undefined)return v.mean;
+  }
+  return v;
 }
 function vCls(v){
-  if(v===null||v===undefined)return'sn';
-  if(v<0.005)return's0'; if(v<0.05)return'sT';
-  if(v<2)return's1'; if(v<5)return's2'; if(v<10)return's3'; return's4';
+  const x=vNum(v);
+  if(x===null||x===undefined)return'sn';
+  if(x<0.005)return's0'; if(x<0.05)return'sT';
+  if(x<2)return's1'; if(x<5)return's2'; if(x<10)return's3'; return's4';
 }
 
+
+function accRange(a,b){
+  if(!a)return {p10:b.p10,p90:b.p90,mean:(b.mean??null)};
+  return {p10:(a.p10??0)+(b.p10??0), p90:(a.p90??0)+(b.p90??0),
+          mean:(a.mean!=null && b.mean!=null)?(a.mean+b.mean):null};
+}
 // ════════════════════════════════════════════════════
 //  DEBUG LOG
 // ════════════════════════════════════════════════════
@@ -523,20 +615,23 @@ function renderTable(){
     let html='<td class="tds"'+tip+'>'+src.label
       +'<span class="badge '+src.bc+'">'+src.badge+'</span></td>'
       +'<td class="tdr">'+rl+'</td>';
-    let total=0,has=false;
+    let total=0,has=false; let totalObj=null;
     for(let p=0;p<S.numP;p++){
       const pS=new Date(S.start.getTime()+p*6*3600000);
       if(!inRange(src.id,pS)){
         html+='<td class="oor" title="Outside '+src.id.toUpperCase()+' range">· · ·</td>';
       } else {
         const v=d?d.periods[p]:null;
-        html+='<td id="'+src.id+'-p'+p+'" class="'+vCls(v)+'" contenteditable="true"'
-          +' data-src="'+src.id+'" data-p="'+p+'" oninput="onEdit(this)"'
-          +' title="'+pS.toUTCString()+'">'+fmtV(v)+'</td>';
-        if(v!==null){total+=v;has=true;}
+        const ed = (src.editable!==false);
+        html+=`<td id="${src.id}-p${p}" class="${vCls(v)}" ${ed?'contenteditable="true" data-src="'+src.id+'" data-p="'+p+'" oninput="onEdit(this)"':''} title="${pS.toUTCString()}${(typeof v==='object'&&v.mean!=null)?' • mean '+fmtOne(v.mean):''}">${fmtV(v)}</td>`;
+        if(v!==null){
+          if(typeof v==='object' && v.p10!==undefined){ totalObj=accRange(totalObj,v); has=true; }
+          else { total+=v; has=true; }
+        }
       }
     }
-    html+='<td class="tdt '+vCls(has?total:null)+'" id="'+src.id+'-tot">'+(has?total.toFixed(1):'—')+'</td>';
+    const totVal = (d && d.total!==undefined) ? d.total : (totalObj?totalObj:(has?total:null));
+    html+=`<td class="tdt ${vCls(totVal)}" id="${src.id}-tot">${(totVal&&typeof totVal==='object')?fmtV(totVal):(totVal!=null?totVal.toFixed(1):'—')}</td>`;
     tr.innerHTML=html; tb.appendChild(tr);
   });
 
