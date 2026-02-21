@@ -178,13 +178,13 @@ const RANGES={nws:Infinity,nbm:264,gfs:384,gefs:840,ecmwf:240,gem:240,hrrr:48,na
 
 const SOURCES=[
   {id:'nws',  label:'NWS Official', badge:'NWS',  bc:'bnws', group:'Official',  fn:fetchNWS},
-  {id:'nbm',  label:'NBM v4.3',     badge:'NBM',  bc:'bnbm', group:'Official',  fn:(s,n)=>fetchGfsEndpoint('nbm_conus', s,n,11)},
+  {id:'nbm',  label:'NBM v4.3',     badge:'NBM',  bc:'bnbm', group:'Official',  fn:(s,n)=>fetchGfsEndpoint('ncep_nbm_conus', s,n,11)},
   {id:'gfs',  label:'GFS Seamless', badge:'GFS',  bc:'bgfs', group:'Global',    fn:(s,n)=>fetchForecast('gfs_seamless',s,n,16)},
   {id:'gefs', label:'GEFS Mean',    badge:'GEFS', bc:'bgef', group:'Global',    fn:fetchGEFS},
   {id:'ecmwf',label:'ECMWF IFS',   badge:'ECMWF',bc:'becm', group:'Global',    fn:fetchECMWF},
   {id:'gem',  label:'GEM Canadian', badge:'GEM',  bc:'bgem', group:'Global',    fn:fetchGEM},
-  {id:'hrrr', label:'HRRR',         badge:'HRRR', bc:'bhrr', group:'Mesoscale', fn:(s,n)=>fetchGfsEndpoint('hrrr_conus', s,n,2)},
-  {id:'nam',  label:'NAM Conus',    badge:'NAM',  bc:'bnam', group:'Mesoscale', fn:(s,n)=>fetchGfsEndpoint('nam_conus',  s,n,3)},
+  {id:'hrrr', label:'HRRR',         badge:'HRRR', bc:'bhrr', group:'Mesoscale', fn:(s,n)=>fetchGfsEndpoint('ncep_hrrr_conus', s,n,2)},
+  {id:'nam',  label:'NAM Conus',    badge:'NAM',  bc:'bnam', group:'Mesoscale', fn:(s,n)=>fetchGfsEndpoint('ncep_nam_conus',  s,n,3)},
 ];
 
 let S={start:null,numP:8,data:{},status:{},fetchedAt:null};
@@ -324,6 +324,7 @@ async function fetchGfsEndpoint(model,startDate,numP,maxDays){
     +'&start_date='+s+'&end_date='+e
     +'&forecast_days='+maxDays
     +'&timezone=UTC';
+  // ncep_ prefix required: ncep_hrrr_conus, ncep_nam_conus, ncep_nbm_conus
   dbgLog(model+' /v1/gfs → '+url.replace('https://api.open-meteo.com','…'),'url');
   const j=await getJ(url);
   if(j.error)throw new Error(j.reason||'Open-Meteo /v1/gfs error: '+model);
