@@ -52,6 +52,7 @@
     .tdr{font-size:.68rem;color:var(--dim)}
     .tdt{font-weight:700;color:var(--accent2);border-left:1px solid var(--border)}
     .oor{color:#1e3040;font-size:.65rem}
+    .stale-run{color:var(--warn);font-size:.65rem;margin-left:4px;cursor:help}
 
     .sn{color:var(--dim)} .s0{color:#2a4050}
     .sT{color:#5b9ec9;font-size:.7rem} .s1{color:#9ecae1} .s2{color:#4292c6}
@@ -525,6 +526,45 @@ function toggleDbg(){
 }
 
 // ════════════════════════════════════════════════════
+//  RUN AGE CHECK
+//  Returns warning string if a model run is off-cycle or stale
+// ════════════════════════════════════════════════════
+function runAgeWarning(srcId, runTimeStr){
+  // Only applies to models with short cycles
+  if(!['hrrr','nam','nbm'].includes(srcId)) return '';
+  if(!runTimeStr||runTimeStr==='—'||runTimeStr==='…') return '';
+
+  // Parse "Feb 21 05z" → UTC Date
+  try{
+    const m=runTimeStr.match(/(\w+)\s+(\d+)\s+(\d+)z/);
+    if(!m)return '';
+    const now=new Date();
+    const year=now.getUTCFullYear();
+    const runDate=new Date(m[1]+' '+m[2]+' '+year+' '+m[3].padStart(2,'0')+':00:00 UTC');
+    const runHr=runDate.getUTCHours();
+    const mainCycles=[0,6,12,18];
+
+    // Is this an off-cycle run?
+    const isOffCycle=!mainCycles.includes(runHr);
+
+    // How old is this run? (hours since init)
+    const ageHrs=(Date.now()-runDate.getTime())/3600000;
+
+    if(isOffCycle && srcId==='hrrr'){
+      return '<span class="stale-run" title="Off-cycle run ('+runTimeStr+'): only goes 18hr. Next main cycle at '+
+        mainCycles.find(c=>c>runHr)+'z or 00z for full 48hr range.">⚠ off-cycle</span>';
+    }
+    if(ageHrs>7 && srcId==='hrrr'){
+      return '<span class="stale-run" title="This HRRR run is '+Math.floor(ageHrs)+'hr old — a newer cycle may be available">⚠ '+Math.floor(ageHrs)+'hr old</span>';
+    }
+    if(ageHrs>7 && srcId==='nam'){
+      return '<span class="stale-run" title="This NAM run is '+Math.floor(ageHrs)+'hr old">⚠ '+Math.floor(ageHrs)+'hr old</span>';
+    }
+  }catch(e){}
+  return '';
+}
+
+// ════════════════════════════════════════════════════
 //  RENDER TABLE
 // ════════════════════════════════════════════════════
 function renderTable(){
@@ -557,10 +597,11 @@ function renderTable(){
     if(src.id==='nws')tr.className='nhl';
     const rl=d?(d.runTime||'—'):(st==='loading'?'…':'—');
     const tip=(st==='error'&&d?.err)?' title="'+d.err.replace(/"/g,"'")+'"':'';
+    const runWarn=runAgeWarning(src.id, d?.runTime||'');
 
     let html='<td class="tds"'+tip+'>'+src.label
       +'<span class="badge '+src.bc+'">'+src.badge+'</span></td>'
-      +'<td class="tdr">'+rl+'</td>';
+      +'<td class="tdr">'+rl+runWarn+'</td>';
     let total=0,has=false;
     for(let p=0;p<S.numP;p++){
       const pS=new Date(S.start.getTime()+p*6*3600000);
