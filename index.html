@@ -257,21 +257,23 @@ async function fetchNWS(startDate,numP){
   const p=gd.properties;
   const rt=p.updateTime?fmtR(new Date(p.updateTime)):'NWS Current';
 
-  // Detect which field and its unit (wmo:m = meters, wmo:mm = millimeters)
+  // NWS snowfallAmount uom is "wmo:m" (meters) — confirmed from API
+  // "wmo:m" ends with ":m" not ":mm", so we check the suffix explicitly
   let snowProp=null, unitFactor=MM_IN;
   if(p.snowfallAmount?.values?.length){
     snowProp=p.snowfallAmount;
-    const u=(p.snowfallAmount.uom||'').toLowerCase();
-    unitFactor = u.includes('m') && !u.includes('mm') ? M_IN : MM_IN;
-    dbgLog('NWS using snowfallAmount, uom='+p.snowfallAmount.uom+', factor='+unitFactor,'ok');
   } else if(p.snowfall?.values?.length){
     snowProp=p.snowfall;
-    const u=(p.snowfall.uom||'').toLowerCase();
-    unitFactor = u.includes('m') && !u.includes('mm') ? M_IN : MM_IN;
-    dbgLog('NWS using snowfall, uom='+p.snowfall.uom+', factor='+unitFactor,'ok');
   }
+  const uom=(snowProp?.uom||'').trim();
+  // wmo:m  = meters  → ×39.3701
+  // wmo:mm = mm      → ×0.0393701
+  // wmo:in = inches  → ×1
+  if(uom==='wmo:m'  || uom.endsWith(':m'))  unitFactor=M_IN;
+  else if(uom==='wmo:in' || uom.endsWith(':in')) unitFactor=1;
+  else unitFactor=MM_IN;  // default: treat as mm
   const vals=snowProp?.values||[];
-  dbgLog('NWS snowfall entries: '+vals.length+', unit factor: '+unitFactor,'ok');
+  dbgLog('NWS uom='+uom+' factor='+unitFactor+' entries='+vals.length,'ok');
 
   const hrMap={};
   vals.forEach(({validTime,value})=>{
