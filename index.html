@@ -584,7 +584,7 @@ function fmtOne(x){
 }
 function fmtV(v){
   if(v===null||v===undefined)return'—';
-  if(typeof v==='object' && v.p10!==undefined && v.p90!==undefined){
+  if(v && typeof v==='object' && v.p10!==undefined && v.p90!==undefined){
     return fmtOne(v.p10)+'–'+fmtOne(v.p90);
   }
   return fmtOne(v);
@@ -607,10 +607,16 @@ function vCls(v){
 
 
 function accRange(a,b){
-  if(!a)return {p10:b.p10,p90:b.p90,mean:(b.mean??null)};
-  return {p10:(a.p10??0)+(b.p10??0), p90:(a.p90??0)+(b.p90??0),
-          mean:(a.mean!=null && b.mean!=null)?(a.mean+b.mean):null};
+  // Combine two {p10,p90,mean} objects safely (either input may be null)
+  if(!b) return a || null;
+  if(!a) return {p10:(b.p10??null), p90:(b.p90??null), mean:(b.mean??null)};
+  return {
+    p10:(a.p10??0)+(b.p10??0),
+    p90:(a.p90??0)+(b.p90??0),
+    mean:(a.mean!=null && b.mean!=null) ? (a.mean+b.mean) : null
+  };
 }
+
 // ════════════════════════════════════════════════════
 //  DEBUG LOG
 // ════════════════════════════════════════════════════
@@ -680,7 +686,7 @@ function renderTable(){
         const ed = (src.editable!==false);
         html+=`<td id="${src.id}-p${p}" class="${vCls(v)}" ${ed?'contenteditable="true" data-src="'+src.id+'" data-p="'+p+'" oninput="onEdit(this)"':''} title="${pS.toUTCString()}${(typeof v==='object'&&v.mean!=null)?' • mean '+fmtOne(v.mean):''}">${fmtV(v)}</td>`;
         if(v!==null){
-          if(typeof v==='object' && v.p10!==undefined){ totalObj=accRange(totalObj,v); has=true; }
+          if(v && v && typeof v==='object' && v.p10!==undefined){ totalObj=accRange(totalObj,v); has=true; }
           else { total+=v; has=true; }
         }
       }
