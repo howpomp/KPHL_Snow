@@ -354,61 +354,31 @@ async function fetchForecast(model,startDate,numP,maxDays){
 //  with models= param (not /v1/forecast which rejects them)
 // ════════════════════════════════════════════════════
 // Returns the most recent 00/06/12/18z UTC time at or before 'now'
-function lastMainCycle(now){
-  const d=new Date(now);
-  const h=d.getUTCHours();
-  const cycleH=[0,6,12,18].reverse().find(c=>h>=c);
-  d.setUTCHours(cycleH,0,0,0);
-  return d;
-}
-
 async function fetchGfsEndpoint(model,startDate,numP,maxDays){
   const s=startDate.toISOString().slice(0,10);
   const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
-
-  // For HRRR: always request from the last main cycle (00/06/12/18z)
-  // by using past_hours to look back far enough, then filter to main-cycle data only
-  // We do this by calculating how many hours ago the last main cycle was
-  const isHRRR = model==='ncep_hrrr_conus';
-  const mainCycle = lastMainCycle(Date.now());
-  const hrsSinceMainCycle = Math.ceil((Date.now()-mainCycle.getTime())/3600000);
-
-  // Build URL — for HRRR add past_hours to ensure we get the main cycle
-  let url='https://api.open-meteo.com/v1/gfs'
+  const url='https://api.open-meteo.com/v1/gfs'
     +'?latitude='+LAT+'&longitude='+LON
     +'&hourly=snowfall'
     +'&models='+model
     +'&start_date='+s+'&end_date='+e
     +'&timezone=UTC';
-
-  if(isHRRR && hrsSinceMainCycle>0){
-    url+='&past_hours='+Math.min(hrsSinceMainCycle+1, 6);
-    dbgLog('HRRR: last main cycle '+fmtR(mainCycle)+' ('+hrsSinceMainCycle+'hr ago), adding past_hours','url');
-  }
-
   dbgLog(model+' /v1/gfs → '+url.replace('https://api.open-meteo.com','…'),'url');
   const j=await getJ(url);
   if(j.error)throw new Error(j.reason||'Open-Meteo /v1/gfs error: '+model);
   const times=j.hourly?.time||[];
   const snow=j.hourly?.snowfall||[];
   if(!times.length)throw new Error('No data from /v1/gfs: '+model);
-
-  // Determine actual run init from the first non-null snow timestamp
-  const firstDataIdx=snow.findIndex(v=>v!=null);
-  const runInitTime=firstDataIdx>=0?new Date(times[firstDataIdx]):new Date(times[0]);
-  const runHr=runInitTime.getUTCHours();
-  const isOffCycle=isHRRR && ![0,6,12,18].includes(runHr);
-  const runLabel=fmtR(new Date(times[0]))+(isOffCycle?' ⚠':'');
-
-  dbgLog(model+' → '+times.length+' hrs, run='+fmtR(new Date(times[0]))+
-    (isOffCycle?' (off-cycle!)':''),'ok');
-
+  dbgLog(model+' → '+times.length+' hrs, non-null: '+snow.filter(v=>v!=null).length,'ok');
   const hrMap={};
   times.forEach((t,i)=>{if(snow[i]!=null)hrMap[t.slice(0,13)]=snow[i];});
+  // Check if HRRR run is off-cycle (not 00/06/12/18z)
+  const runDate=new Date(times[0]);
+  const runHr=runDate.getUTCHours();
+  const isOffCycle=model==='ncep_hrrr_conus' && ![0,6,12,18].includes(runHr);
   return{
-    runTime:runLabel,
+    runTime:fmtR(runDate),
     offCycle:isOffCycle,
-    mainCycleTime:fmtR(mainCycle),
     periods:buildP(startDate,numP,hrMap,CM_IN)
   };
 }
