@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KPHL Snow Forecast Comparison</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e14;
+      --panel: #0f1520;
+      --border: #1e2d45;
+      --accent: #2a9fd6;
+      --accent2: #00e5ff;
+      --warn: #f0b429;
+      --snow: #c8e6ff;
+      --dim: #3a4a5c;
+      --text: #cdd6e0;
+      --mono: 'Share Tech Mono', monospace;
+      --sans: 'Barlow Condensed', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 0 0 60px;
+    }
+
+    /* ─── Header ─── */
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 28px 14px;
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      line-height: 1;
+    }
+    header h1 span { color: var(--warn); }
+    .header-sub {
+      font-size: 0.85rem;
+      color: var(--dim);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+    .header-meta {
+      margin-left: auto;
+      text-align: right;
+    }
+    .header-meta .ts {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--dim);
+    }
+
+    /* ─── Controls ─── */
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 28px;
+      background: #0c1119;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .controls label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+    }
+    select, input[type="date"], input[type="number"] {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    select:focus, input:focus {
+      border-color: var(--accent);
+    }
+    .btn {
+      padding: 7px 18px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 3px;
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: var(--accent2); }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--dim);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+
+    /* ─── Status bar ─── */
+    #statusBar {
+      padding: 8px 28px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      min-height: 32px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .status-item { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-ok { background: #4caf50; }
+    .dot-loading { background: var(--warn); animation: pulse 1s infinite; }
+    .dot-err { background: #ef5350; }
+    .dot-manual { background: var(--dim); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ─── Main table area ─── */
+    .table-wrap {
+      padding: 24px 28px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      min-width: 720px;
+    }
+
+    /* Column groups */
+    colgroup col.col-source { width: 160px; }
+    colgroup col.col-run    { width: 110px; }
+    colgroup col.col-period { min-width: 72px; }
+    colgroup col.col-total  { width: 80px; }
+
+    thead th {
+      padding: 8px 10px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--dim);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    thead th.th-source {
+      text-align: left;
+      color: var(--text);
+    }
+    thead .th-group {
+      background: #0c1119;
+      color: var(--accent);
+      font-size: 0.68rem;
+      padding: 4px 10px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0.1em;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #111c28;
+      transition: background 0.1s;
+    }
+    tbody tr:hover { background: rgba(42,159,214,0.06); }
+    tbody tr.nws-row { background: rgba(0,229,255,0.04); }
+    tbody tr.nws-row:hover { background: rgba(0,229,255,0.09); }
+
+    td {
+      padding: 10px 10px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+    td.td-source {
+      text-align: left;
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+    }
+    td.td-run {
+      font-size: 0.72rem;
+      color: var(--dim);
+    }
+    td.td-total {
+      font-weight: 700;
+      color: var(--accent2);
+      border-left: 1px solid var(--border);
+    }
+
+    /* Snow heat coloring */
+    .snow-0    { color: var(--dim); }
+    .snow-t    { color: #6baed6; font-size: 0.72rem; }
+    .snow-low  { color: #9ecae1; }
+    .snow-mid  { color: #4292c6; }
+    .snow-high { color: #08519c; background: #c8e6ff22; border-radius: 3px; }
+    .snow-huge { color: #fff; background: #08519c55; border-radius: 3px; }
+
+    /* Source badges */
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 2px;
+      font-size: 0.7rem;
+      font-family: var(--mono);
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .badge-nws  { background: #00e5ff22; color: var(--accent2); border: 1px solid #00e5ff44; }
+    .badge-gfs  { background: #4caf5022; color: #81c784;       border: 1px solid #4caf5044; }
+    .badge-ecmwf{ background: #9c27b022; color: #ce93d8;       border: 1px solid #9c27b044; }
+    .badge-hrrr { background: #ff980022; color: #ffb74d;       border: 1px solid #ff980044; }
+    .badge-nam  { background: #e91e6322; color: #f48fb1;       border: 1px solid #e91e6344; }
+
+    /* Editable cell */
+    td[contenteditable="true"] {
+      outline: none;
+      cursor: text;
+      border-bottom: 1px dashed var(--dim);
+    }
+    td[contenteditable="true"]:focus {
+      background: rgba(42,159,214,0.12);
+      border-bottom: 1px solid var(--accent);
+    }
+
+    /* ─── Legend & notes ─── */
+    .legend {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      padding: 0 28px 16px;
+      flex-wrap: wrap;
+      font-size: 0.75rem;
+      color: var(--dim);
+      font-family: var(--mono);
+    }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+
+    .notes {
+      padding: 0 28px;
+      font-size: 0.78rem;
+      color: var(--dim);
+      font-family: var(--mono);
+      line-height: 1.7;
+    }
+    .notes a { color: var(--accent); text-decoration: none; }
+    .notes a:hover { text-decoration: underline; }
+
+    /* ─── Spinner overlay ─── */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,14,20,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      display: none;
+    }
+    .spinner-box {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--accent2);
+      text-align: center;
+    }
+    .spinner-box .spin {
+      font-size: 2rem;
+      animation: rotateSpin 1s linear infinite;
+      display: block;
+      margin-bottom: 12px;
+    }
+    @keyframes rotateSpin { to { transform: rotate(360deg); } }
+
+    /* ─── Section divider ─── */
+    .section-head {
+      padding: 6px 28px;
+      font-size: 0.7rem;
+      font-family: var(--mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #0c1119;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin: 12px 0 0;
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 40px;
+      color: var(--dim);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 14px 16px 12px; }
+      .controls, .table-wrap, .legend, .notes { padding-left: 16px; padding-right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="overlay">
+  <div class="spinner-box">
+    <span class="spin">❄</span>
+    <div id="overlayMsg">Fetching forecast data…</div>
+  </div>
+</div>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div>
+    <h1>K<span>PHL</span> Snow Forecast</h1>
+    <div class="header-sub">Philadelphia Intl · 39.8729°N 75.2437°W · Elev 36 ft</div>
+  </div>
+  <div class="header-meta">
+    <div class="ts" id="clockDisplay">—</div>
+    <div class="ts" style="color:var(--text);margin-top:2px">Model Comparison Dashboard</div>
+  </div>
+</header>
+
+<!-- ═══════════════ CONTROLS ═══════════════ -->
+<div class="controls">
+  <label>Event Start</label>
+  <input type="date" id="startDate" />
+
+  <label>Periods (6-hr)</label>
+  <input type="number" id="numPeriods" value="8" min="2" max="20" style="width:60px" />
+
+  <button class="btn" onclick="fetchAll()">⟳ Refresh Models</button>
+  <button class="btn btn-ghost" onclick="clearManual()">Clear Manual</button>
+  <button class="btn btn-ghost" onclick="exportCSV()">↓ CSV</button>
+</div>
+
+<!-- ═══════════════ STATUS BAR ═══════════════ -->
+<div id="statusBar"></div>
+
+<!-- ═══════════════ TABLE ═══════════════ -->
+<div class="table-wrap">
+  <table id="snowTable">
+    <colgroup>
+      <col class="col-source" />
+      <col class="col-run" />
+    </colgroup>
+    <thead id="tableHead"></thead>
+    <tbody id="tableBody">
+      <tr><td colspan="20" class="empty-msg">← Set a start date and click Refresh Models</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════ LEGEND ═══════════════ -->
+<div class="legend">
+  <span><span class="dot dot-ok"></span>Live API data</span>
+  <span><span class="dot dot-err"></span>Fetch failed / unavailable</span>
+  <span><span class="dot dot-manual"></span>Manual entry</span>
+  <span style="margin-left:8px">Snow cells (in):</span>
+  <span class="snow-0">0.0</span>
+  <span class="snow-t">T</span>
+  <span class="snow-low">0.5–1.9</span>
+  <span class="snow-mid">2–4.9</span>
+  <span class="snow-high">5–9.9</span>
+  <span class="snow-huge">10+</span>
+</div>
+
+<div class="notes">
+  Model data via <a href="https://open-meteo.com" target="_blank">Open-Meteo</a> (GFS, HRRR, NAM, ECMWF) — free, no key required. NWS Official via <a href="https://api.weather.gov" target="_blank">api.weather.gov</a>.<br/>
+  Open-Meteo snowfall values are hourly sums (cm); converted to inches and aggregated to 6-hr periods here.<br/>
+  Click any model cell to edit manually. ECMWF values may only be available for 00z/12z runs.
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const LAT = 39.8729;
+const LON = -75.2437;
+const CM_TO_IN = 0.393701;
+
+const SOURCES = [
+  { id: 'nws',   label: 'NWS Official', badge: 'nws',   rowClass: 'nws-row', fetch: fetchNWS   },
+  { id: 'gfs',   label: 'GFS',          badge: 'gfs',   rowClass: '',        fetch: fetchGFS   },
+  { id: 'ecmwf', label: 'ECMWF IFS',    badge: 'ecmwf', rowClass: '',        fetch: fetchECMWF },
+  { id: 'hrrr',  label: 'HRRR',         badge: 'hrrr',  rowClass: '',        fetch: fetchHRRR  },
+  { id: 'nam',   label: 'NAM Conus',    badge: 'nam',   rowClass: '',        fetch: fetchNAM   },
+];
+
+// State
+let state = {
+  startDate: null,   // JS Date (local midnight)
+  numPeriods: 8,
+  data: {},          // { sourceId: { runTime, periods: [float|null, ...] } }
+  status: {},        // { sourceId: 'ok'|'loading'|'error'|'manual' }
+};
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Default: today at 00z
+  const today = new Date();
+  document.getElementById('startDate').value = today.toISOString().slice(0,10);
+  document.getElementById('numPeriods').value = 8;
+  setInterval(updateClock, 1000);
+  updateClock();
+  renderStatusBar();
+});
+
+function updateClock() {
+  const now = new Date();
+  const utc = now.toUTCString().replace('GMT','UTC');
+  document.getElementById('clockDisplay').textContent = utc.replace(/^.*?, /,'');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAIN FETCH ORCHESTRATOR
+// ═══════════════════════════════════════════════════════════
+async function fetchAll() {
+  const dateVal = document.getElementById('startDate').value;
+  const numP    = parseInt(document.getElementById('numPeriods').value) || 8;
+
+  if (!dateVal) { alert('Please select an event start date.'); return; }
+
+  state.startDate  = new Date(dateVal + 'T00:00:00Z'); // treat as 00 UTC
+  state.numPeriods = numP;
+  state.data   = {};
+  state.status = {};
+
+  SOURCES.forEach(s => { state.status[s.id] = 'loading'; });
+  renderStatusBar();
+  renderTable();
+  showOverlay('Fetching forecast data from APIs…');
+
+  const promises = SOURCES.map(async (src) => {
+    try {
+      const result = await src.fetch(state.startDate, numP);
+      state.data[src.id] = result;
+      state.status[src.id] = 'ok';
+    } catch(e) {
+      console.warn(src.id, e);
+      state.data[src.id] = { runTime: null, periods: Array(numP).fill(null) };
+      state.status[src.id] = 'error';
+    }
+  });
+
+  await Promise.allSettled(promises);
+  hideOverlay();
+  renderStatusBar();
+  renderTable();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FETCH: NWS OFFICIAL  (api.weather.gov gridpoints hourly)
+// ═══════════════════════════════════════════════════════════
+async function fetchNWS(startDate, numP) {
+  // Step 1: get grid info
+  const ptResp = await fetch(`https://api.weather.gov/points/${LAT},${LON}`, {
+    headers: { 'User-Agent': 'KPHL-Snow-Dashboard/1.0 (weather app)' }
+  });
+  if (!ptResp.ok) throw new Error('NWS points failed');
+  const ptData = await ptResp.json();
+  const hourlyUrl = ptData.properties.forecastHourly;
+  const generatedAt = ptData.properties.generatedAt || ptData.properties.updateTime || null;
+
+  // Step 2: hourly forecast
+  const fResp = await fetch(hourlyUrl, {
+    headers: { 'User-Agent': 'KPHL-Snow-Dashboard/1.0' }
+  });
+  if (!fResp.ok) throw new Error('NWS hourly failed');
+  const fData = await fResp.json();
+
+  const periods6h = aggregate6hNWS(fData.properties.periods, startDate, numP);
+
+  return {
+    runTime: generatedAt ? fmtRunTime(new Date(generatedAt)) : 'NWS Current',
+    periods: periods6h
+  };
+}
+
+function aggregate6hNWS(periods, startDate, numP) {
+  // Each NWS period is 1-hour. We need to sum snow in each 6-hr window.
+  // NWS doesn't explicitly give snowfall as a separate variable in hourly — 
+  // we derive from probabilityOfPrecipitation + shortForecast keywords.
+  // Best proxy: look for snow in shortForecast and use quantitativePrecipitation
+  // Since NWS hourly doesn't have a direct snow field we scan the text.
+  // We store hours that mention snow & estimate from windSpeed proxy is poor.
+  // Instead, use detailedForecast scan for snow amounts where available.
+  // For now: return null with note — user can fill manually. 
+  // But we can do better: parse shortForecast for "N in of snow", "snow N-M in"
+  const result = [];
+  for (let p = 0; p < numP; p++) {
+    const tStart = new Date(startDate.getTime() + p * 6 * 3600000);
+    const tEnd   = new Date(tStart.getTime() + 6 * 3600000);
+    let snowSum = 0;
+    let found = false;
+    periods.forEach(period => {
+      const pStart = new Date(period.startTime);
+      const pEnd   = new Date(period.endTime);
+      if (pStart >= tEnd || pEnd <= tStart) return;
+      const txt = (period.shortForecast || '') + ' ' + (period.detailedForecast || '');
+      // Parse "N inches of snow" or "N to M inches"
+      const m = txt.match(/(\d+(?:\.\d+)?)\s*(?:to\s*(\d+(?:\.\d+)?)\s*)?inch/i);
+      if (m) {
+        const lo = parseFloat(m[1]);
+        const hi = m[2] ? parseFloat(m[2]) : lo;
+        snowSum += (lo + hi) / 2;
+        found = true;
+      }
+    });
+    result.push(found ? parseFloat(snowSum.toFixed(1)) : null);
+  }
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FETCH: OPEN-METEO GENERIC  (snowfall in cm/hr)
+// ═══════════════════════════════════════════════════════════
+async function fetchOpenMeteo(model, startDate, numP) {
+  const endDate = new Date(startDate.getTime() + numP * 6 * 3600000 + 24*3600000);
+  const startStr = startDate.toISOString().slice(0,10);
+  const endStr   = endDate.toISOString().slice(0,10);
+
+  // Use the GFS-family endpoint for GFS/HRRR/NAM, ECMWF endpoint for ECMWF
+  let baseUrl = 'https://api.open-meteo.com/v1/forecast';
+  if (model === 'ecmwf_ifs025') {
+    baseUrl = 'https://api.open-meteo.com/v1/ecmwf';
+  }
+
+  const url = `${baseUrl}?latitude=${LAT}&longitude=${LON}`
+    + `&hourly=snowfall&models=${model}`
+    + `&start_date=${startStr}&end_date=${endStr}`
+    + `&timezone=UTC&precipitation_unit=mm&timeformat=iso8601`;
+
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`OpenMeteo ${model} failed: ${resp.status}`);
+  const json = await resp.json();
+
+  const times  = json.hourly.time;
+  const snow   = json.hourly.snowfall; // mm (metric) — Open-Meteo returns mm by default
+  // Actually Open-Meteo snowfall is in cm by default; let's convert: cm → inches
+  const runTime = json.metadata?.model_run_time || json.model_run_time || 'Latest run';
+
+  const periods = [];
+  for (let p = 0; p < numP; p++) {
+    const tStart = new Date(startDate.getTime() + p * 6 * 3600000);
+    const tEnd   = new Date(tStart.getTime() + 6 * 3600000);
+    let sum = 0;
+    times.forEach((t, i) => {
+      const ts = new Date(t);
+      if (ts >= tStart && ts < tEnd && snow[i] != null) {
+        sum += snow[i]; // cm
+      }
+    });
+    periods.push(parseFloat((sum * CM_TO_IN).toFixed(1)));
+  }
+
+  // Try to get model run time from response header or metadata
+  let rt = 'Latest run';
+  if (json.hourly && json.hourly.time && json.hourly.time.length > 0) {
+    // Approximate run time from data start
+    rt = fmtRunTime(new Date(json.hourly.time[0]));
+  }
+
+  return { runTime: rt, periods };
+}
+
+async function fetchGFS(startDate, numP) {
+  const res = await fetchOpenMeteo('gfs_seamless', startDate, numP);
+  return res;
+}
+
+async function fetchECMWF(startDate, numP) {
+  // ECMWF via Open-Meteo ECMWF endpoint
+  const endDate = new Date(startDate.getTime() + numP * 6 * 3600000 + 24*3600000);
+  const startStr = startDate.toISOString().slice(0,10);
+  const endStr   = endDate.toISOString().slice(0,10);
+
+  const url = `https://api.open-meteo.com/v1/ecmwf?latitude=${LAT}&longitude=${LON}`
+    + `&hourly=snowfall&models=ecmwf_ifs025`
+    + `&start_date=${startStr}&end_date=${endStr}`
+    + `&timezone=UTC`;
+
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`ECMWF fetch failed: ${resp.status}`);
+  const json = await resp.json();
+
+  const times = json.hourly.time;
+  const snow  = json.hourly.snowfall;
+
+  const periods = [];
+  for (let p = 0; p < numP; p++) {
+    const tStart = new Date(startDate.getTime() + p * 6 * 3600000);
+    const tEnd   = new Date(tStart.getTime() + 6 * 3600000);
+    let sum = 0;
+    times.forEach((t,i) => {
+      const ts = new Date(t);
+      if (ts >= tStart && ts < tEnd && snow[i] != null) sum += snow[i];
+    });
+    periods.push(parseFloat((sum * CM_TO_IN).toFixed(1)));
+  }
+
+  return { runTime: 'ECMWF 9km', periods };
+}
+
+async function fetchHRRR(startDate, numP) {
+  // HRRR via GFS endpoint (model=hrrr_conus)
+  const endDate = new Date(startDate.getTime() + numP * 6 * 3600000 + 24*3600000);
+  const startStr = startDate.toISOString().slice(0,10);
+  const endStr   = endDate.toISOString().slice(0,10);
+
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`
+    + `&hourly=snowfall&models=hrrr_conus`
+    + `&start_date=${startStr}&end_date=${endStr}`
+    + `&timezone=UTC`;
+
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HRRR fetch failed: ${resp.status}`);
+  const json = await resp.json();
+
+  const times = json.hourly.time;
+  const snow  = json.hourly.snowfall;
+
+  const periods = [];
+  for (let p = 0; p < numP; p++) {
+    const tStart = new Date(startDate.getTime() + p * 6 * 3600000);
+    const tEnd   = new Date(tStart.getTime() + 6 * 3600000);
+    let sum = 0;
+    times.forEach((t,i) => {
+      const ts = new Date(t);
+      if (ts >= tStart && ts < tEnd && snow[i] != null) sum += snow[i];
+    });
+    periods.push(parseFloat((sum * CM_TO_IN).toFixed(1)));
+  }
+
+  return { runTime: 'HRRR 3km', periods };
+}
+
+async function fetchNAM(startDate, numP) {
+  const endDate = new Date(startDate.getTime() + numP * 6 * 3600000 + 24*3600000);
+  const startStr = startDate.toISOString().slice(0,10);
+  const endStr   = endDate.toISOString().slice(0,10);
+
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}`
+    + `&hourly=snowfall&models=nam_conus`
+    + `&start_date=${startStr}&end_date=${endStr}`
+    + `&timezone=UTC`;
+
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`NAM fetch failed: ${resp.status}`);
+  const json = await resp.json();
+
+  const times = json.hourly.time;
+  const snow  = json.hourly.snowfall;
+
+  const periods = [];
+  for (let p = 0; p < numP; p++) {
+    const tStart = new Date(startDate.getTime() + p * 6 * 3600000);
+    const tEnd   = new Date(tStart.getTime() + 6 * 3600000);
+    let sum = 0;
+    times.forEach((t,i) => {
+      const ts = new Date(t);
+      if (ts >= tStart && ts < tEnd && snow[i] != null) sum += snow[i];
+    });
+    periods.push(parseFloat((sum * CM_TO_IN).toFixed(1)));
+  }
+
+  return { runTime: 'NAM 3km Conus', periods };
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER TABLE
+// ═══════════════════════════════════════════════════════════
+function renderTable() {
+  if (!state.startDate) return;
+  const numP = state.numPeriods;
+
+  // Build column headers
+  const thead = document.getElementById('tableHead');
+  thead.innerHTML = '';
+
+  // Row 1: group labels
+  const gr = document.createElement('tr');
+  let groupHtml = `<th class="th-group th-source" colspan="2">Source / Run</th>`;
+  groupHtml += `<th class="th-group" colspan="${numP}">6-Hourly Accumulation (inches)</th>`;
+  groupHtml += `<th class="th-group">Storm Total</th>`;
+  gr.innerHTML = groupHtml;
+  thead.appendChild(gr);
+
+  // Row 2: period headers
+  const hr = document.createElement('tr');
+  let headerHtml = `<th class="th-source" style="text-align:left">Model</th><th>Run Init</th>`;
+  for (let p = 0; p < numP; p++) {
+    const t = new Date(state.startDate.getTime() + p * 6 * 3600000);
+    const label = fmtPeriodHeader(t);
+    headerHtml += `<th>${label}</th>`;
+  }
+  headerHtml += `<th>Total</th>`;
+  hr.innerHTML = headerHtml;
+  thead.appendChild(hr);
+
+  // Body
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  SOURCES.forEach(src => {
+    const d = state.data[src.id];
+    const tr = document.createElement('tr');
+    if (src.rowClass) tr.className = src.rowClass;
+
+    const runLabel = d ? (d.runTime || '—') : (state.status[src.id] === 'loading' ? 'loading…' : '—');
+    let html = `<td class="td-source">
+        ${src.label}
+        <span class="badge badge-${src.badge}">${src.badge.toUpperCase()}</span>
+      </td>
+      <td class="td-run">${runLabel}</td>`;
+
+    let total = 0;
+    let hasData = false;
+
+    for (let p = 0; p < numP; p++) {
+      const val = d ? d.periods[p] : null;
+      const cellId = `${src.id}-p${p}`;
+      const formatted = formatSnow(val);
+      const cls = snowClass(val);
+      html += `<td id="${cellId}" class="${cls}" contenteditable="true" 
+                   data-src="${src.id}" data-period="${p}"
+                   oninput="onCellEdit(this)"
+                   title="${fmtPeriodTitle(p)}">${formatted}</td>`;
+      if (val !== null && val !== undefined) { total += val; hasData = true; }
+    }
+
+    const totalStr = hasData ? total.toFixed(1) : '—';
+    const totalCls = snowClass(hasData ? total : null);
+    html += `<td class="td-total ${totalCls}" id="${src.id}-total">${totalStr}</td>`;
+
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+
+  // Add manual row
+  const manualTr = document.createElement('tr');
+  let mHtml = `<td class="td-source" style="color:var(--dim)">
+    Manual Entry <span class="badge" style="background:#1e2d45;color:var(--dim);border:1px solid #1e2d45">USER</span>
+  </td><td class="td-run" style="color:var(--dim)">—</td>`;
+  for (let p = 0; p < numP; p++) {
+    const cellId = `manual-p${p}`;
+    const stored = state.data['manual'] ? state.data['manual'].periods[p] : null;
+    const v = formatSnow(stored);
+    mHtml += `<td id="${cellId}" class="snow-0" contenteditable="true"
+                  data-src="manual" data-period="${p}"
+                  oninput="onCellEdit(this)"
+                  title="${fmtPeriodTitle(p)}">${v}</td>`;
+  }
+  mHtml += `<td class="td-total" id="manual-total">—</td>`;
+  manualTr.innerHTML = mHtml;
+  tbody.appendChild(manualTr);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CELL EDIT
+// ═══════════════════════════════════════════════════════════
+function onCellEdit(td) {
+  const src    = td.dataset.src;
+  const period = parseInt(td.dataset.period);
+  const raw    = td.textContent.trim();
+
+  if (!state.data[src]) {
+    state.data[src] = { runTime: null, periods: Array(state.numPeriods).fill(null) };
+  }
+
+  let val = null;
+  if (raw === 'T' || raw === 't') {
+    val = 0.01; // trace
+  } else if (raw === '' || raw === '—' || raw === '-') {
+    val = null;
+  } else {
+    val = parseFloat(raw);
+    if (isNaN(val)) val = null;
+  }
+
+  state.data[src].periods[period] = val;
+  if (src !== 'manual') state.status[src] = 'manual';
+
+  // Update styling
+  td.className = snowClass(val);
+
+  // Recalc total
+  recalcTotal(src);
+}
+
+function recalcTotal(src) {
+  const d = state.data[src];
+  if (!d) return;
+  let total = 0; let hasData = false;
+  d.periods.forEach(v => { if (v !== null) { total += v; hasData = true; } });
+  const el = document.getElementById(`${src}-total`);
+  if (el) {
+    el.textContent = hasData ? total.toFixed(1) : '—';
+    el.className = `td-total ${snowClass(hasData ? total : null)}`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATUS BAR
+// ═══════════════════════════════════════════════════════════
+function renderStatusBar() {
+  const bar = document.getElementById('statusBar');
+  let html = '';
+  SOURCES.forEach(src => {
+    const st = state.status[src.id] || 'manual';
+    const cls = st === 'ok' ? 'dot-ok' : st === 'loading' ? 'dot-loading' : st === 'error' ? 'dot-err' : 'dot-manual';
+    const label = st === 'ok' ? 'Live' : st === 'loading' ? 'Loading' : st === 'error' ? 'Error' : 'Manual';
+    html += `<span class="status-item"><span class="dot ${cls}"></span><span style="font-size:0.75rem">${src.label}: ${label}</span></span>`;
+  });
+  bar.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function formatSnow(val) {
+  if (val === null || val === undefined) return '—';
+  if (val === 0.01) return 'T';
+  if (val === 0) return '0.0';
+  return val.toFixed(1);
+}
+
+function snowClass(val) {
+  if (val === null || val === undefined) return 'snow-0';
+  if (val === 0.01) return 'snow-t';
+  if (val === 0) return 'snow-0';
+  if (val < 2)   return 'snow-low';
+  if (val < 5)   return 'snow-mid';
+  if (val < 10)  return 'snow-high';
+  return 'snow-huge';
+}
+
+function fmtRunTime(d) {
+  if (!d || isNaN(d)) return '—';
+  const day = d.toUTCString().slice(5,11);
+  const hr  = String(d.getUTCHours()).padStart(2,'0');
+  return `${day} ${hr}z`;
+}
+
+function fmtPeriodHeader(d) {
+  const mo  = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+  const day = d.getUTCDate();
+  const hr  = String(d.getUTCHours()).padStart(2,'0');
+  return `${mo} ${day}<br/>${hr}z–${String(d.getUTCHours()+6).padStart(2,'0')}z`;
+}
+
+function fmtPeriodTitle(p) {
+  if (!state.startDate) return '';
+  const t = new Date(state.startDate.getTime() + p * 6 * 3600000);
+  return t.toUTCString();
+}
+
+function showOverlay(msg) {
+  document.getElementById('overlayMsg').textContent = msg;
+  document.getElementById('overlay').style.display = 'flex';
+}
+function hideOverlay() {
+  document.getElementById('overlay').style.display = 'none';
+}
+
+function clearManual() {
+  state.data['manual'] = { runTime: null, periods: Array(state.numPeriods).fill(null) };
+  renderTable();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CSV EXPORT
+// ═══════════════════════════════════════════════════════════
+function exportCSV() {
+  if (!state.startDate) { alert('No data to export yet.'); return; }
+  const numP = state.numPeriods;
+  const headers = ['Source','Run Init'];
+  for (let p = 0; p < numP; p++) {
+    const t = new Date(state.startDate.getTime() + p * 6 * 3600000);
+    headers.push(`${t.toISOString().slice(0,13)}z`);
+  }
+  headers.push('Total');
+
+  const rows = [headers];
+  SOURCES.concat([{id:'manual', label:'Manual Entry'}]).forEach(src => {
+    const d = state.data[src.id];
+    const row = [src.label, d ? (d.runTime||'') : ''];
+    let total = 0; let hasData = false;
+    for (let p = 0; p < numP; p++) {
+      const v = d ? d.periods[p] : null;
+      row.push(v === null ? '' : v === 0.01 ? 'T' : v.toFixed(1));
+      if (v !== null) { total += v; hasData = true; }
+    }
+    row.push(hasData ? total.toFixed(1) : '');
+    rows.push(row);
+  });
+
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `KPHL_snow_${state.startDate.toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+</script>
+</body>
+</html>
