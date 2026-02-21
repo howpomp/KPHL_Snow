@@ -311,19 +311,19 @@ async function fetchForecast(model,startDate,numP,maxDays){
 
 // ════════════════════════════════════════════════════
 //  OPEN-METEO /v1/gfs  — NBM, HRRR, NAM
-//  These models require the dedicated /v1/gfs endpoint
-//  with models= param (not /v1/forecast which rejects them)
+//  Fixed: removed forecast_days (mutually exclusive with start_date/end_date)
 // ════════════════════════════════════════════════════
 async function fetchGfsEndpoint(model,startDate,numP,maxDays){
   const s=startDate.toISOString().slice(0,10);
   const e=new Date(startDate.getTime()+numP*6*3600000+86400000).toISOString().slice(0,10);
+
   const url='https://api.open-meteo.com/v1/gfs'
     +'?latitude='+LAT+'&longitude='+LON
     +'&hourly=snowfall'
     +'&models='+model
     +'&start_date='+s+'&end_date='+e
-    +'&forecast_days='+maxDays
     +'&timezone=UTC';
+
   // ncep_ prefix required: ncep_hrrr_conus, ncep_nam_conus, ncep_nbm_conus
   dbgLog(model+' /v1/gfs → '+url.replace('https://api.open-meteo.com','…'),'url');
   const j=await getJ(url);
